@@ -1,0 +1,41 @@
+const fs = require("fs");
+const express = require("express");
+const request = require("request");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+
+const REST_HOST = "localhost:8080";
+const MACAROON_PATH =
+  "/Users/lucafischer/Library/Application Support/Lnd/data/chain/bitcoin/regtest/admin.macaroon";
+
+const app = express();
+
+const corsOptions = {
+  origin: "http://localhost:3000",
+};
+
+app.use(cors(corsOptions));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.post("/unlockwallet", (req, res) => {
+  const password = req.body.wallet_password;
+  const requestBody = {
+    wallet_password: password,
+  };
+
+  let options = {
+    url: `https://${REST_HOST}/v1/unlockwallet`,
+    rejectUnauthorized: false,
+    json: true,
+    form: JSON.stringify(requestBody),
+  };
+  request.post(options, function (error, response, body) {
+    console.log(body);
+  });
+});
+
+app.listen(3001, "localhost", () => {
+  console.log("Server is running on http://localhost:3001");
+});
