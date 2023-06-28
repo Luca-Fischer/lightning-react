@@ -29,11 +29,10 @@ function Login() {
       },
     })
       .then((response) => {
-        console.log(response);
-        if (response.data.length !== 0) {
+        if (!response.data.toString().startsWith("Error")) {
           console.log(response.data.token);
           localStorage.setItem("isLoggedIn", response.data.token);
-          window.location.href = "http://localhost:3000/";
+          window.location.href = "http://localhost:3000/"; // force rerender otherwise localStorage item is updated to late 
         } else {
           setIsError(true);
         }

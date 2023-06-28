@@ -10,8 +10,7 @@ import Axios from "axios";
 import { Link } from "react-router-dom";
 
 function Register() {
-
-  // TODO: encryption and small capital letter always 
+  // TODO: encryption and small capital letter always
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -24,8 +23,8 @@ function Register() {
       password: password,
     })
       .then((response) => {
-        localStorage.setItem("isLoggedIn", "true");
-        console.log(response);
+        localStorage.setItem("isLoggedIn", response.data.token);
+        window.location.href = "http://localhost:3000/"; // force rerender otherwise localStorage item is updated to late
       })
       .catch((error) => {
         console.error(error);
@@ -65,15 +64,9 @@ function Register() {
               setPassword(e.target.value);
             }}
           />
-          <Link to="/">
-            <Button
-              onClick={createUser}
-              variant="contained"
-             // value={"buttonClick"}
-            >
-              Register
-            </Button>
-          </Link>
+          <Button onClick={createUser} variant="contained">
+            Register
+          </Button>
         </Stack>
       </CardContent>
       <CardActions>

@@ -2,6 +2,7 @@ const express = require("express");
 const db = require("./config/db");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const { exec } = require("child_process");
 
 const app = express();
 
@@ -9,6 +10,7 @@ const PORT = 3002;
 app.use(cors());
 app.use(express.json());
 
+// TODO: check if user email address is real and email and username is not used
 // Create User
 app.post("/api/create", (req, res) => {
   const name = req.body.name;
@@ -24,12 +26,12 @@ app.post("/api/create", (req, res) => {
         res.status(500).json({ error: "Failed to create user" });
       } else {
         console.log(result);
-        const createdUser = {
-          id: result.insertId,
-          name: name,
-          email: email,
-        };
-        res.status(201).json(createdUser);
+        res.send({
+          token: jwt.sign({ id: result.insertId }, "secretLightningKeyForId", {
+            expiresIn: "1h",
+          }),
+        });
+       // openTerminal();
       }
     }
   );
@@ -62,7 +64,7 @@ app.get("/api/getUser/", async (req, res) => {
         }),
       });
     } else {
-      res.send(result);
+      res.send("Error: Something went wrong");
     }
   } catch (err) {
     console.log(err);
@@ -82,6 +84,20 @@ app.get("/api/accessResource", (req, res) => {
   res.status(200).json({ success: true, data: { id: decodedToken.id } });
   console.log("Valid Token");
 });
+
+/*const openTerminal = () => {
+  const command = 'osascript -e \'tell app "Terminal" to do script ""\'';
+
+  const terminalProcess = exec("sh", ["-c", command]);
+
+  terminalProcess.on("error", (error) => {
+    console.error(`Error opening terminal: ${error.message}`);
+  });
+
+  terminalProcess.on("exit", (code) => {
+    console.log("Terminal opened successfully");
+  });
+};*/
 
 app.listen(PORT, () => {
   console.log(`Server is running on ${PORT}`);

@@ -17,6 +17,8 @@ interface WalletBalance {
 }
 
 function Home() {
+
+  // TODO: unclear which are required, if not used can be removed 
   const [walletBalance, setWalletBalance] = React.useState<WalletBalance>({
     total_balance: "0",
     confirmend_balance: "0",
@@ -57,10 +59,10 @@ function Home() {
 
     Axios.post("http://localhost:3001/unlockwallet", requestBody)
       .then((response) => {
-        console.log(response.data); // Handle the response data
+        console.log(response.data); 
       })
       .catch((error) => {
-        console.log(error); // Handle any errors
+        console.log(error); 
       });
   };
 

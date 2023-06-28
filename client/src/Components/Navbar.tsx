@@ -53,7 +53,7 @@ function Navbar() {
             </Stack>
           </Typography>
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
-            {isLoggedIn === "true" ? (
+            {isLoggedIn?.startsWith("ey") ? (
               <Button
                 onClick={logout}
                 sx={{ my: 2, color: "white", display: "block" }}

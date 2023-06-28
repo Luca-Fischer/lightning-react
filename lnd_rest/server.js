@@ -18,7 +18,8 @@ app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-/*
+
+// unlock wallet
 app.post("/unlockwallet", (req, res) => {
   const password = req.body.wallet_password;
   const requestBody = {
@@ -35,7 +36,9 @@ app.post("/unlockwallet", (req, res) => {
     console.log(body);
   });
 });
-*/
+
+
+// get wallet balance
 app.get("/walletbalance", (req, res) => {
   let options = {
     url: `https://${REST_HOST}/v1/balance/blockchain`,
