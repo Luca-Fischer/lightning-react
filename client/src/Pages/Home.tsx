@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import CardContent from "@mui/material/CardContent";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
@@ -8,39 +8,49 @@ import Button from "@mui/material/Button";
 import Axios from "axios";
 
 interface WalletBalance {
-  total_balance: Number;
-  confirmend_balance: Number;
-  unconfirmend_balance: Number;
-  locked_balance: Number;
-  reserved_balance_anchor_chan: Number;
-  account_balance: string;
+  total_balance: String;
+  confirmend_balance: String;
+  unconfirmend_balance: String;
+  locked_balance: String;
+  reserved_balance_anchor_chan: String;
+  account_balance: String;
 }
 
 function Home() {
-  const [getInfo, setGetInfo] = useState<any>(null);
-
   const [walletBalance, setWalletBalance] = React.useState<WalletBalance>({
-    total_balance: 120000,
-    confirmend_balance: 1000000,
-    unconfirmend_balance: 0,
-    locked_balance: 100,
-    reserved_balance_anchor_chan: 0,
-    account_balance: "some object",
+    total_balance: "0",
+    confirmend_balance: "0",
+    unconfirmend_balance: "0",
+    locked_balance: "0",
+    reserved_balance_anchor_chan: "0",
+    account_balance: "Object",
   });
 
+  useEffect(() => {
+    reloadData();
+  }, []);
+
   const reloadData = () => {
-    setWalletBalance({
-      // api to receive the new balance
-      total_balance: 120001,
-      confirmend_balance: 1000000,
-      unconfirmend_balance: 0,
-      locked_balance: 100,
-      reserved_balance_anchor_chan: 0,
-      account_balance: "some object",
-    });
+    Axios.get("http://localhost:3001/walletbalance")
+      .then((response) => {
+        console.log(response.data);
+        setWalletBalance({
+          total_balance: response.data.total_balance,
+          confirmend_balance: response.data.confirmed_balance,
+          unconfirmend_balance: response.data.unconfirmed_balance,
+          locked_balance: response.data.locked_balance,
+          reserved_balance_anchor_chan:
+            response.data.reserved_balance_anchor_chan,
+          account_balance: response.data.account_balance,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const getInfoLoader = async () => {
+    // TODO: to unlock wallet, has to be moved later and getInfoLoader is useless then
     const requestBody = {
       wallet_password: btoa("!ikXX4MLpA"),
     };
@@ -70,11 +80,11 @@ function Home() {
             >
               <TextField
                 id="outlined-controlled"
-                label="Balance"
+                label="Total Balance"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      {walletBalance.total_balance.toString()}
+                      {walletBalance.total_balance}
                     </InputAdornment>
                   ),
                 }}
@@ -82,32 +92,12 @@ function Home() {
               />
               <TextField
                 id="outlined-controlled"
-                label="Recieved"
+                label="Locked Balance"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      recievedAmount
+                      {walletBalance.locked_balance}
                     </InputAdornment>
-                  ),
-                }}
-                disabled
-              />
-              <TextField
-                id="outlined-controlled"
-                label="Sent"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">SentAmount</InputAdornment>
-                  ),
-                }}
-                disabled
-              />
-              <TextField
-                id="outlined-controlled"
-                label="Network Fees"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">Fees</InputAdornment>
                   ),
                 }}
                 disabled
@@ -121,7 +111,6 @@ function Home() {
         Reload Data
       </Button>
       <Button onClick={getInfoLoader}>getInfo</Button>
-      <div>{getInfo}</div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+/*
 app.post("/unlockwallet", (req, res) => {
   const password = req.body.wallet_password;
   const requestBody = {
@@ -33,6 +33,25 @@ app.post("/unlockwallet", (req, res) => {
   };
   request.post(options, function (error, response, body) {
     console.log(body);
+  });
+});
+*/
+app.get("/walletbalance", (req, res) => {
+  let options = {
+    url: `https://${REST_HOST}/v1/balance/blockchain`,
+    rejectUnauthorized: false,
+    json: true,
+    headers: {
+      "Grpc-Metadata-macaroon": fs.readFileSync(MACAROON_PATH).toString("hex"),
+    },
+  };
+  request.get(options, function (error, response, body) {
+    if (error) {
+      res.status(500).json({ error: "Internal Server Error" });
+    } else {
+      console.log(body);
+      res.json(body); 
+    }
   });
 });
 
