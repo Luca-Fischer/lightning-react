@@ -6,6 +6,11 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Grid from "@mui/material/Unstable_Grid2";
 import Button from "@mui/material/Button";
 import Axios from "axios";
+import Card from "@mui/material/Card";
+import CheckIcon from '@mui/icons-material/Check';
+
+import CopyToClipboardButton from "../Components/CopyToClipboardButton";
+import "../Components/HoverButton.css";
 
 interface WalletBalance {
   total_balance: String;
@@ -17,8 +22,11 @@ interface WalletBalance {
 }
 
 function Home() {
+  const [newAddress, setNewAddress] = React.useState("");
 
-  // TODO: unclear which are required, if not used can be removed 
+  const [isCopied, setIsCopied] = React.useState(false);
+
+  // TODO: unclear which are required, if not used can be removed
   const [walletBalance, setWalletBalance] = React.useState<WalletBalance>({
     total_balance: "0",
     confirmend_balance: "0",
@@ -51,19 +59,16 @@ function Home() {
       });
   };
 
-  const getInfoLoader = async () => {
-    // TODO: to unlock wallet, has to be moved later and getInfoLoader is useless then
-    const requestBody = {
-      wallet_password: btoa("!ikXX4MLpA"),
-    };
+  const createNewAddress = () => {
+    setIsCopied(false);
+    Axios.get("http://localhost:3001/newaddress").then((response) => {
+      console.log(response.data);
+      setNewAddress(response.data.address);
+    });
+  };
 
-    Axios.post("http://localhost:3001/unlockwallet", requestBody)
-      .then((response) => {
-        console.log(response.data); 
-      })
-      .catch((error) => {
-        console.log(error); 
-      });
+  const copied = () => {
+    setIsCopied(true);
   };
 
   return (
@@ -94,6 +99,30 @@ function Home() {
               />
               <TextField
                 id="outlined-controlled"
+                label="Total Balance"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      {walletBalance.confirmend_balance}
+                    </InputAdornment>
+                  ),
+                }}
+                disabled
+              />
+              <TextField
+                id="outlined-controlled"
+                label="Total Balance"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      {walletBalance.unconfirmend_balance}
+                    </InputAdornment>
+                  ),
+                }}
+                disabled
+              />
+              <TextField
+                id="outlined-controlled"
                 label="Locked Balance"
                 InputProps={{
                   startAdornment: (
@@ -106,13 +135,42 @@ function Home() {
               />
             </Stack>
           </Grid>
-          <Grid>Graph</Grid>
+          <Card sx={{ maxWidth: 450 }}>
+            <CardContent>
+              <h3>
+                Get started by depositing bitcoin into your Lightning Node with
+                an on-chain Transaction.
+              </h3>
+              <Button onClick={createNewAddress} variant="contained">
+                Deposit Bitcoin
+              </Button>
+              <br></br>
+              <br></br>
+              <Grid
+                container
+                rowSpacing={1}
+                columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+              >
+                {newAddress !== "" ? (
+                  <>
+                    {newAddress}
+                    &nbsp;&nbsp;
+                    <div onClick={copied} className="hover-button">
+                      <CopyToClipboardButton text={newAddress} />
+                    </div>
+                    {isCopied ? <div><CheckIcon fontSize="small" />Copied</div> : <></>}
+                  </>
+                ) : (
+                  <></>
+                )}
+              </Grid>
+            </CardContent>
+          </Card>
         </Grid>
       </CardContent>
       <Button onClick={reloadData} variant="contained">
         Reload Data
       </Button>
-      <Button onClick={getInfoLoader}>getInfo</Button>
     </div>
   );
 }

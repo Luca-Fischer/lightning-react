@@ -37,7 +37,6 @@ app.post("/unlockwallet", (req, res) => {
   });
 });
 
-
 // get wallet balance
 app.get("/walletbalance", (req, res) => {
   let options = {
@@ -53,7 +52,27 @@ app.get("/walletbalance", (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
     } else {
       console.log(body);
-      res.json(body); 
+      res.json(body);
+    }
+  });
+});
+
+// create new address
+app.get("/newaddress", (req, res) => {
+  let options = {
+    url: `https://${REST_HOST}/v1/newaddress`,
+    rejectUnauthorized: false,
+    json: true,
+    headers: {
+      "Grpc-Metadata-macaroon": fs.readFileSync(MACAROON_PATH).toString("hex"),
+    },
+  };
+  request.get(options, function (error, response, body) {
+    if (error) {
+      res.status(500).json({ error: "Internal Server Error" });
+    } else {
+      console.log(body);
+      res.json(body);
     }
   });
 });
