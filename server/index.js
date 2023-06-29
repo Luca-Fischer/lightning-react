@@ -31,7 +31,7 @@ app.post("/api/create", (req, res) => {
             expiresIn: "1h",
           }),
         });
-       // openTerminal();
+        openTerminal();
       }
     }
   );
@@ -85,19 +85,20 @@ app.get("/api/accessResource", (req, res) => {
   console.log("Valid Token");
 });
 
-/*const openTerminal = () => {
-  const command = 'osascript -e \'tell app "Terminal" to do script ""\'';
+const openTerminal = () => {
+  const { exec } = require("child_process");
 
-  const terminalProcess = exec("sh", ["-c", command]);
-
-  terminalProcess.on("error", (error) => {
-    console.error(`Error opening terminal: ${error.message}`);
-  });
-
-  terminalProcess.on("exit", (code) => {
-    console.log("Terminal opened successfully");
-  });
-};*/
+  exec(
+    'osascript -e \'tell application "Terminal" to do script "lnd"\'',
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Command execution error: ${error}`);
+      } else {
+        console.log("New terminal window opened");
+      }
+    }
+  );
+};
 
 app.listen(PORT, () => {
   console.log(`Server is running on ${PORT}`);

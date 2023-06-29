@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 import Axios from "axios";
+import CircularProgress from "@mui/material/CircularProgress";
 
 import { Link } from "react-router-dom";
 
@@ -16,7 +17,10 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [loader, setLoader] = useState(false);
+
   const createUser = () => {
+    setLoader(true);
     Axios.post("http://localhost:3002/api/create", {
       name: name,
       email: email,
@@ -24,7 +28,20 @@ function Register() {
     })
       .then((response) => {
         localStorage.setItem("isLoggedIn", response.data.token);
-        window.location.href = "http://localhost:3000/"; // force rerender otherwise localStorage item is updated to late
+        setTimeout(() => {
+          const requestBody = {
+            wallet_password: btoa("!ikXX4MLpA"),
+          };
+
+          Axios.post("http://localhost:3001/unlockwallet", requestBody)
+            .then((response) => {
+              console.log(response.data);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+          window.location.href = "http://localhost:3000/"; // force rerender otherwise localStorage item is updated to late
+        }, 2000); // timeout to wait for terminal to start
       })
       .catch((error) => {
         console.error(error);
@@ -32,49 +49,57 @@ function Register() {
   };
 
   return (
-    <Card sx={{ minWidth: 275 }}>
-      <CardContent>
-        <Stack
-          component="form"
-          sx={{
-            width: "25ch",
-          }}
-          spacing={2}
-          noValidate
-          autoComplete="off"
-        >
-          <TextField
-            id="outlined-controlled"
-            label="Username"
-            onChange={(e) => {
-              setName(e.target.value);
-            }}
-          />
-          <TextField
-            id="outlined-controlled"
-            label="Email"
-            onChange={(e) => {
-              setEmail(e.target.value);
-            }}
-          />
-          <TextField
-            id="outlined-uncontrolled"
-            label="Password"
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
-          />
-          <Button onClick={createUser} variant="contained">
-            Register
-          </Button>
-        </Stack>
-      </CardContent>
-      <CardActions>
-        <Link to="/Login">
-          <Button size="small">Already an account?</Button>
-        </Link>
-      </CardActions>
-    </Card>
+    <>
+      {!loader ? (
+        <Card sx={{ minWidth: 275 }}>
+          <CardContent>
+            <Stack
+              component="form"
+              sx={{
+                width: "25ch",
+              }}
+              spacing={2}
+              noValidate
+              autoComplete="off"
+            >
+              <TextField
+                id="outlined-controlled"
+                label="Username"
+                onChange={(e) => {
+                  setName(e.target.value);
+                }}
+              />
+              <TextField
+                id="outlined-controlled"
+                label="Email"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+              />
+              <TextField
+                id="outlined-uncontrolled"
+                label="Password"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+              />
+              <Button onClick={createUser} variant="contained">
+                Register
+              </Button>
+            </Stack>
+          </CardContent>
+          <CardActions>
+            <Link to="/Login">
+              <Button size="small">Already an account?</Button>
+            </Link>
+          </CardActions>
+        </Card>
+      ) : (
+        <>
+          <CircularProgress /> Setting Up Account
+        </>
+      )}
+    </>
   );
 }
 
