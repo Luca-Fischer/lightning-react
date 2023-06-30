@@ -12,41 +12,45 @@ import { Link } from "react-router-dom";
 
 function Register() {
   // TODO: encryption and small capital letter always
-  // TODO: PASSWORD AT LEAST 8 CHARACTERS
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [loader, setLoader] = useState(false);
+  const [passwordToShort, setpasswordToShort] = useState(false);
 
   const createUser = () => {
-    setLoader(true);
-    Axios.post("http://localhost:3002/api/create", {
-      name: name,
-      email: email,
-      password: password,
-    })
-      .then((response) => {
-        localStorage.setItem("isLoggedIn", response.data.token);
-        setTimeout(() => {
-          const requestBody = {
-            wallet_password: password,
-            user_id: response.data.id
-          };
-
-          Axios.post("http://localhost:3001/initwallet", requestBody)
-            .then((response) => {
-              console.log(response.data);
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-          window.location.href = "http://localhost:3000/"; // force rerender otherwise localStorage item is updated to late
-        }, 2000); // timeout to wait for terminal to start
+    setpasswordToShort(true);
+    if (password.length >= 8) {
+      setLoader(true);
+      Axios.post("http://localhost:3002/api/create", {
+        name: name,
+        email: email,
+        password: password,
       })
-      .catch((error) => {
-        console.error(error);
-      });
+        .then((response) => {
+          localStorage.setItem("isLoggedIn", response.data.token);
+          setTimeout(() => {
+            const requestBody = {
+              wallet_password: password,
+              user_id: response.data.id,
+            };
+
+            Axios.post("http://localhost:3001/initwallet", requestBody)
+              .then((response) => {
+                console.log(response.data);
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+            window.location.href = "http://localhost:3000/"; // force rerender otherwise localStorage item is updated to late
+          }, 2000); // timeout to wait for terminal to start
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    } else {
+    }
   };
 
   return (
@@ -77,13 +81,26 @@ function Register() {
                   setEmail(e.target.value);
                 }}
               />
-              <TextField
-                id="outlined-uncontrolled"
-                label="Password"
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-              />
+              {!passwordToShort ? (
+                <TextField
+                  id="outlined-uncontrolled"
+                  label="Password"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                />
+              ) : (
+                <TextField
+                  error
+                  id="outlined-uncontrolled"
+                  label="Password"
+                  helperText="At least 8 characters!"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                />
+              )}
+
               <Button onClick={createUser} variant="contained">
                 Register
               </Button>
