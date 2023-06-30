@@ -22,6 +22,8 @@ interface WalletBalance {
 }
 
 function Home() {
+  // TODO: Check always if localstorage token is there, otherwise log out
+
   const [newAddress, setNewAddress] = React.useState("");
 
   const [isCopied, setIsCopied] = React.useState(false);
@@ -41,7 +43,9 @@ function Home() {
   }, []);
 
   const reloadData = () => {
-    Axios.get("http://localhost:3001/walletbalance")
+    Axios.post("http://localhost:3001/walletbalance", {
+      user_id_token: localStorage.getItem("isLoggedIn"),
+    })
       .then((response) => {
         console.log(response.data);
         setWalletBalance({
@@ -61,7 +65,9 @@ function Home() {
 
   const createNewAddress = () => {
     setIsCopied(false);
-    Axios.get("http://localhost:3001/newaddress").then((response) => {
+    Axios.post("http://localhost:3001/newaddress", {
+      user_id_token: localStorage.getItem("isLoggedIn"),
+    }).then((response) => {
       console.log(response.data);
       setNewAddress(response.data.address);
     });

@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 
 function Register() {
   // TODO: encryption and small capital letter always
-
+  // TODO: PASSWORD AT LEAST 8 CHARACTERS
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,10 +30,11 @@ function Register() {
         localStorage.setItem("isLoggedIn", response.data.token);
         setTimeout(() => {
           const requestBody = {
-            wallet_password: btoa("!ikXX4MLpA"),
+            wallet_password: password,
+            user_id: response.data.id
           };
 
-          Axios.post("http://localhost:3001/unlockwallet", requestBody)
+          Axios.post("http://localhost:3001/initwallet", requestBody)
             .then((response) => {
               console.log(response.data);
             })

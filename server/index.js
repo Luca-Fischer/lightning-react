@@ -30,6 +30,7 @@ app.post("/api/create", (req, res) => {
           token: jwt.sign({ id: result.insertId }, "secretLightningKeyForId", {
             expiresIn: "1h",
           }),
+          id: result.insertId,
         });
         openTerminal(result.insertId);
       }
