@@ -31,7 +31,7 @@ app.post("/api/create", (req, res) => {
             expiresIn: "1h",
           }),
         });
-        openTerminal();
+        openTerminal(result.insertId);
       }
     }
   );
@@ -85,11 +85,12 @@ app.get("/api/accessResource", (req, res) => {
   console.log("Valid Token");
 });
 
-const openTerminal = () => {
+const openTerminal = (id) => {
   const { exec } = require("child_process");
-
+  console.log(id);
   exec(
-    'osascript -e \'tell application "Terminal" to do script "lnd"\'',
+    `osascript -e 'tell application "Terminal" to do script "/Users/lucafischer/Documents/projects/lightning-react/server/start_lnd.sh ${id}"'`,
+
     (error, stdout, stderr) => {
       if (error) {
         console.error(`Command execution error: ${error}`);

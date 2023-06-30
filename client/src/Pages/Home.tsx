@@ -7,7 +7,7 @@ import Grid from "@mui/material/Unstable_Grid2";
 import Button from "@mui/material/Button";
 import Axios from "axios";
 import Card from "@mui/material/Card";
-import CheckIcon from '@mui/icons-material/Check';
+import CheckIcon from "@mui/icons-material/Check";
 
 import CopyToClipboardButton from "../Components/CopyToClipboardButton";
 import "../Components/HoverButton.css";
@@ -99,7 +99,7 @@ function Home() {
               />
               <TextField
                 id="outlined-controlled"
-                label="Total Balance"
+                label="Confirmed Balance"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -111,7 +111,7 @@ function Home() {
               />
               <TextField
                 id="outlined-controlled"
-                label="Total Balance"
+                label="Unconfirmed Balance"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -153,12 +153,20 @@ function Home() {
               >
                 {newAddress !== "" ? (
                   <>
+                    <b>Send BTC to this address:</b>
                     {newAddress}
                     &nbsp;&nbsp;
                     <div onClick={copied} className="hover-button">
                       <CopyToClipboardButton text={newAddress} />
                     </div>
-                    {isCopied ? <div><CheckIcon fontSize="small" />Copied</div> : <></>}
+                    {isCopied ? (
+                      <div>
+                        <CheckIcon fontSize="small" />
+                        Copied
+                      </div>
+                    ) : (
+                      <></>
+                    )}
                   </>
                 ) : (
                   <></>
