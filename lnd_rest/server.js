@@ -5,10 +5,6 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 
-//const REST_HOST = "localhost:8080";
-//const MACAROON_PATH =
-//  "/Users/lucafischer/Library/Application Support/Lnd/data/chain/bitcoin/regtest/admin.macaroon";
-
 const app = express();
 
 const corsOptions = {
@@ -19,27 +15,6 @@ app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-/*
-// unlock wallet
-app.post("/unlockwallet", (req, res) => {
-  const REST_PORT = "";
-  const password = req.body.wallet_password;
-  const requestBody = {
-    wallet_password: password,
-  };
-
-  let options = {
-    url: `https://localhost:${REST_PORT}/v1/unlockwallet`,
-    rejectUnauthorized: false,
-    json: true,
-    form: JSON.stringify(requestBody),
-  };
-  request.post(options, function (error, response, body) {
-    console.log(body);
-  });
-});
-*/
 
 // get wallet balance
 app.post("/walletbalance", (req, res) => {
