@@ -75,8 +75,7 @@ app.post("/newaddress", (req, res) => {
 app.post("/initwallet", async (req, res) => {
   const cipher_seed_mnemonic = [];
   const wallet_password = req.body.wallet_password;
-  console.log("PASSWORD")
-  console.log(wallet_password)
+
   const REST_PORT = req.body.user_id;
 
   try {
@@ -99,25 +98,38 @@ app.post("/initwallet", async (req, res) => {
 
     await getSeedPromise;
 
-    setTimeout(() => {
-      let requestBody = {
-        wallet_password: wallet_password,
-        cipher_seed_mnemonic: cipher_seed_mnemonic,
-      };
-      console.log("HIEREIRIEIRIE")
-      console.log(wallet_password)
+    const makeRequest = () =>
+      new Promise((resolve, reject) => {
+        let requestBody = {
+          wallet_password: wallet_password,
+          cipher_seed_mnemonic: cipher_seed_mnemonic,
+        };
 
-      let options = {
-        url: `https://localhost:${REST_PORT}/v1/initwallet`,
-        rejectUnauthorized: false,
-        json: true,
-        form: JSON.stringify(requestBody),
-      };
-      request.post(options, function (error, response, body) {
+        let options = {
+          url: `https://localhost:${REST_PORT}/v1/initwallet`,
+          rejectUnauthorized: false,
+          json: true,
+          form: JSON.stringify(requestBody),
+        };
+        request.post(options, function (error, response, body) {
+          if (error) {
+            reject(error);
+          } else {
+            resolve({ response, body });
+          }
+        });
+      });
+
+    setTimeout(async () => {
+      try {
+        const { response, body } = await makeRequest();
         console.log(body);
         res.json({ cipher_seed_mnemonic }); // TODO: mnemonic get send back but not used yet
-      });
-    }, 5000);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred" });
+      }
+    }, 1000);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "An error occurred" });
