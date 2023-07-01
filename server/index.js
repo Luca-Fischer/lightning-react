@@ -73,6 +73,21 @@ app.get("/api/getUser/", async (req, res) => {
   }
 });
 
+// get all names
+app.get("/api/getUsers", (req, res) => {
+  db.query("SELECT name FROM users", (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: "Failed to get users" });
+    } else {
+      console.log(result);
+      res.send({
+        names: result,
+      });
+    }
+  });
+});
+
 // verify token
 app.get("/api/accessResource", (req, res) => {
   const token = req.headers.authorization.split(" ")[1];

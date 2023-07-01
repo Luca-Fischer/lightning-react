@@ -7,7 +7,7 @@ import Stack from "@mui/material/Stack";
 import Sent from "../Components/Sent";
 import Received from "../Components/Received";
 
-function Products() {
+function History() {
   const [showTable, setShowTable] = useState(true);
 
   const showReceived = () => {
@@ -65,4 +65,4 @@ function Products() {
   );
 }
 
-export default Products;
+export default History;

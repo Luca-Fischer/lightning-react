@@ -45,9 +45,14 @@ function Navbar() {
                   Home
                 </Button>
               </Link>
-              <Link to="/Products" style={{ textDecoration: "none" }}>
+              <Link to="/History" style={{ textDecoration: "none" }}>
                 <Button sx={{ my: 2, color: "white", display: "block" }}>
-                  Products
+                  History
+                </Button>
+              </Link>
+              <Link to="/Connect" style={{ textDecoration: "none" }}>
+                <Button sx={{ my: 2, color: "white", display: "block" }}>
+                  Connect
                 </Button>
               </Link>
             </Stack>

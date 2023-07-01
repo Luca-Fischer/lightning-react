@@ -111,13 +111,40 @@ app.post("/initwallet", async (req, res) => {
       };
       request.post(options, function (error, response, body) {
         console.log(body);
-        res.json({ cipher_seed_mnemonic });
+        res.json({ cipher_seed_mnemonic }); // TODO: mnemonic get send back but not used yet
       });
     }, 5000);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "An error occurred" });
   }
+});
+
+// list channels
+app.post("/listchannels", (req, res) => {
+  const token = jwt.verify(req.body.user_id_token, "secretLightningKeyForId");
+  const REST_PORT = token.id;
+  const MACAROON_PATH =
+    "/Users/lucafischer/Library/Application Support/lnd" +
+    token.id +
+    "/data/chain/bitcoin/regtest/admin.macaroon";
+
+  let options = {
+    url: `https://localhost:${REST_PORT}/v1/channels`,
+    rejectUnauthorized: false,
+    json: true,
+    headers: {
+      "Grpc-Metadata-macaroon": fs.readFileSync(MACAROON_PATH).toString("hex"),
+    },
+  };
+  request.get(options, function (error, response, body) {
+    if (error) {
+      res.status(500).json({ error: "Internal Server Error" });
+    } else {
+      console.log(body);
+      res.json(body);
+    }
+  });
 });
 
 app.listen(3001, "localhost", () => {
