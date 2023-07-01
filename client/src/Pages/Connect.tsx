@@ -3,9 +3,6 @@ import Grid from "@mui/material/Unstable_Grid2";
 import Button from "@mui/material/Button";
 import Axios from "axios";
 import TextField from "@mui/material/TextField";
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
 
 function Connect() {
   const [existingChannels, setExistingChannels] = useState([]);
@@ -60,15 +57,11 @@ function Connect() {
           onChange={handleInputChange}
           placeholder="Search..."
         />
-         <List
-          sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}
-        >
-          {filteredNames.map((value) => (
-            <ListItem key={value} disableGutters sx={{ padding: '0px', marginLeft: '20px' }}>
-              <ListItemText primary={value} /><Button id={value}>Open Channel</Button>
-            </ListItem>
+        <ul style={{ listStyleType: "none", padding: 20 }}>
+          {filteredNames.map((item, index) => (
+            <li key={index}>{item}</li>
           ))}
-        </List>
+        </ul>
       </Grid>
     </Grid>
   );
