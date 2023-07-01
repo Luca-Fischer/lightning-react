@@ -74,7 +74,7 @@ app.post("/newaddress", (req, res) => {
 // init wallet
 app.post("/initwallet", async (req, res) => {
   const cipher_seed_mnemonic = [];
-  const wallet_password = req.body.wallet_password;
+  const wallet_password = Buffer.from(req.body.wallet_password).toString("base64");
 
   const REST_PORT = req.body.user_id;
 
@@ -104,7 +104,7 @@ app.post("/initwallet", async (req, res) => {
           wallet_password: wallet_password,
           cipher_seed_mnemonic: cipher_seed_mnemonic,
         };
-
+        console.log("INNITWALLET");
         let options = {
           url: `https://localhost:${REST_PORT}/v1/initwallet`,
           rejectUnauthorized: false,
@@ -120,7 +120,6 @@ app.post("/initwallet", async (req, res) => {
         });
       });
 
-    setTimeout(async () => {
       try {
         const { response, body } = await makeRequest();
         console.log(body);
@@ -129,7 +128,6 @@ app.post("/initwallet", async (req, res) => {
         console.error(error);
         res.status(500).json({ error: "An error occurred" });
       }
-    }, 1000);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "An error occurred" });

@@ -38,7 +38,6 @@ function Register() {
       setNameUsed(true);
       return;
     }
-    setpasswordToShort(true);
     if (password.length >= 8) {
       setLoader(true);
       Axios.post("http://localhost:3002/api/create", {
@@ -62,11 +61,13 @@ function Register() {
                 console.log(error);
               });
             window.location.href = "http://localhost:3000/"; // force rerender otherwise localStorage item is updated to late
-          }, 2000); // timeout to wait for terminal to start
+          }, 1000); // timeout to wait for terminal to start
         })
         .catch((error) => {
           console.error(error);
         });
+    } else {
+      setpasswordToShort(true);
     }
   };
 
