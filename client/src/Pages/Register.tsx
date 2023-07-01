@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
@@ -16,10 +16,28 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [emails, setEmails] = useState<string[]>([]);
+  const [names, setNames] = useState<string[]>([]);
+
   const [loader, setLoader] = useState(false);
   const [passwordToShort, setpasswordToShort] = useState(false);
+  const [nameUsed, setNameUsed] = useState(false);
+  const [emailUsed, setEmailUsed] = useState(false);
+
+  useEffect(() => {
+    getUsers();
+  }, [name]);
 
   const createUser = () => {
+    getUsers();
+    if (emails.includes(email)) {
+      setEmailUsed(true);
+      return;
+    }
+    if (names.includes(name)) {
+      setNameUsed(true);
+      return;
+    }
     setpasswordToShort(true);
     if (password.length >= 8) {
       setLoader(true);
@@ -49,8 +67,14 @@ function Register() {
         .catch((error) => {
           console.error(error);
         });
-    } else {
     }
+  };
+
+  const getUsers = () => {
+    Axios.get("http://localhost:3002/api/getUserInfos").then((response) => {
+      setNames(response.data.result.map((item: any) => item.name));
+      setEmails(response.data.result.map((item: any) => item.email));
+    });
   };
 
   return (
@@ -67,20 +91,46 @@ function Register() {
               noValidate
               autoComplete="off"
             >
-              <TextField
-                id="outlined-controlled"
-                label="Username"
-                onChange={(e) => {
-                  setName(e.target.value);
-                }}
-              />
-              <TextField
-                id="outlined-controlled"
-                label="Email"
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-              />
+              {!nameUsed ? (
+                <TextField
+                  id="outlined-controlled"
+                  label="Username"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                  }}
+                />
+              ) : (
+                <TextField
+                  error
+                  id="outlined-controlled"
+                  label="Username"
+                  helperText="Name already used!"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                  }}
+                />
+              )}
+
+              {!emailUsed ? (
+                <TextField
+                  id="outlined-controlled"
+                  label="Email"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
+                />
+              ) : (
+                <TextField
+                  error
+                  id="outlined-controlled"
+                  label="Email"
+                  helperText="Email already used!"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
+                />
+              )}
+
               {!passwordToShort ? (
                 <TextField
                   id="outlined-uncontrolled"

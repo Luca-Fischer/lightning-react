@@ -75,6 +75,8 @@ app.post("/newaddress", (req, res) => {
 app.post("/initwallet", async (req, res) => {
   const cipher_seed_mnemonic = [];
   const wallet_password = req.body.wallet_password;
+  console.log("PASSWORD")
+  console.log(wallet_password)
   const REST_PORT = req.body.user_id;
 
   try {
@@ -102,6 +104,8 @@ app.post("/initwallet", async (req, res) => {
         wallet_password: wallet_password,
         cipher_seed_mnemonic: cipher_seed_mnemonic,
       };
+      console.log("HIEREIRIEIRIE")
+      console.log(wallet_password)
 
       let options = {
         url: `https://localhost:${REST_PORT}/v1/initwallet`,

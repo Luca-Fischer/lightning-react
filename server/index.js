@@ -88,6 +88,20 @@ app.get("/api/getUsers", (req, res) => {
   });
 });
 
+// get all names and emails
+app.get("/api/getUserInfos", (req, res) => {
+  db.query("SELECT name, email FROM users", (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json({ error: "Failed to get users" });
+    } else {
+      res.send({
+        result: result,
+      });
+    }
+  });
+});
+
 // verify token
 app.get("/api/accessResource", (req, res) => {
   const token = req.headers.authorization.split(" ")[1];
