@@ -185,6 +185,7 @@ function Home() {
       <Button onClick={reloadData} variant="contained">
         Reload Data
       </Button>
+      {localStorage.getItem("isLoggedIn")}
     </div>
   );
 }
