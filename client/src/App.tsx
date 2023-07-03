@@ -5,6 +5,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import History from "./Pages/History";
 import Connect from "./Pages/Connect";
+import Channels from "./Pages/Channels";
 import Box from "@mui/material/Box";
 
 import Navbar from "./Components/Navbar";
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/History" element={<History />} />
         <Route path="/Connect" element={<Connect />} />
+        <Route path="/Channels" element={<Channels />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
       </Routes>

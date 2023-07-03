@@ -102,6 +102,15 @@ app.get("/api/getUserInfos", (req, res) => {
   });
 });
 
+// get all names by id
+app.get("/api/getNames", (req, res) => {
+  const ports = req.query.ports;
+  db.query(`SELECT name FROM users WHERE id IN (${ports})`, (err, result) => {
+    console.log(result);
+    res.json({ names: result });
+  });
+});
+
 // verify token
 app.get("/api/accessResource", (req, res) => {
   const token = req.headers.authorization.split(" ")[1];

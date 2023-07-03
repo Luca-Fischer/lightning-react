@@ -165,8 +165,8 @@ app.post("/getinfo", (req, res) => {
 
 // connect peer
 app.post("/connectpeer", (req, res) => {
+  console.log(req.body.pub_key);
   const token = jwt.verify(req.body.user_id_token, "secretLightningKeyForId");
-  const pub_key = Buffer.from(req.body.pub_key).toString("base64");
   const host = req.body.host + ":" + req.body.port;
   const REST_PORT = token.id;
   const MACAROON_PATH =
@@ -175,14 +175,14 @@ app.post("/connectpeer", (req, res) => {
     "/data/chain/bitcoin/regtest/admin.macaroon";
 
   const addr = {
-    pubkey: pub_key,
+    pubkey: req.body.pub_key,
     host: host,
   };
   console.log(addr);
 
   let requestBody = {
     addr: addr,
-   // perm: true,
+    // perm: true,
   };
   let options = {
     url: `https://localhost:${REST_PORT}/v1/peers`,
@@ -194,8 +194,8 @@ app.post("/connectpeer", (req, res) => {
     form: JSON.stringify(requestBody),
   };
   request.post(options, function (error, response, body) {
-    console.log(error);
     console.log(body);
+    res.json(body);
   });
 });
 

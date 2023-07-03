@@ -55,6 +55,11 @@ function Navbar() {
                   Connect
                 </Button>
               </Link>
+              <Link to="/Channels" style={{ textDecoration: "none" }}>
+                <Button sx={{ my: 2, color: "white", display: "block" }}>
+                  Channels
+                </Button>
+              </Link>
             </Stack>
           </Typography>
           <Box sx={{ display: { xs: "none", sm: "block" } }}>

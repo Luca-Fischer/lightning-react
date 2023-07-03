@@ -4,14 +4,16 @@ import Button from "@mui/material/Button";
 import Axios from "axios";
 import TextField from "@mui/material/TextField";
 
+interface Peer {
+  address: string;
+}
+
 function Connect() {
-  const [existingChannels, setExistingChannels] = useState([]);
   const [existingPeers, setExistingPeers] = useState([]);
   const [names, setNames] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [filteredNames, setFilteredNames] = useState([]);
-  const [identityPubkey, setIdentityPubkey] = useState("");
-  const [remoteIdentityPubkey, setRemoteIdentityPubkey] = useState("");
+  const [connectedPeers, setConnectedPeers] = useState<{ name: string }[]>([]);
   const [connectRemoteIdentityPubkey, setConnectRemoteIdentityPubkey] =
     useState("");
   const [remoteHostAddress, setRemoteHostAddress] = useState("");
@@ -27,26 +29,36 @@ function Connect() {
   };
 
   useEffect(() => {
-    reloadChannels();
+    reloadPeers();
     getUsers();
-    getInfo();
   }, []);
-
-  const reloadChannels = () => {
-    Axios.post("http://localhost:3001/listchannels", {
-      user_id_token: localStorage.getItem("isLoggedIn"),
-    }).then((response) => {
-      setExistingChannels(response.data.channels);
-    });
-  };
 
   const reloadPeers = () => {
     Axios.post("http://localhost:3001/listpeers", {
       user_id_token: localStorage.getItem("isLoggedIn"),
-    }).then((response) => {
-      setExistingPeers(response.data.peers);
-    });
-  }
+    })
+      .then((response) => {
+        setExistingPeers(response.data.peers);
+        const addresses = response.data.peers.map((peer: Peer) => {
+          const parts = peer.address.split(":");
+          const port = parseInt(parts[1]) - 10000;
+          return port;
+        });
+        // get names for each port
+        return Axios.get("http://localhost:3002/api/getNames", {
+          params: {
+            ports: addresses,
+          },
+        });
+      })
+      .then((response) => {
+        console.log(response.data.names);
+        setConnectedPeers(response.data.names);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   const getUsers = () => {
     Axios.get("http://localhost:3002/api/getUsers").then((response) => {
@@ -54,27 +66,15 @@ function Connect() {
     });
   };
 
-  const getInfo = () => {
-    Axios.post("http://localhost:3001/getinfo", {
+  const connectPeer = () => {
+    Axios.post("http://localhost:3001/connectpeer", {
       user_id_token: localStorage.getItem("isLoggedIn"),
-    }).then((response) => {
-      setIdentityPubkey(response.data.identity_pubkey);
-    });
-  };
-
-  const openChannel = () => {
-    Axios.post("http://localhost:3001/openchannel", {
-      user_id_token: localStorage.getItem("isLoggedIn"),
-      identity_pub_key: remoteIdentityPubkey,
+      pub_key: connectRemoteIdentityPubkey,
+      host: remoteHostAddress,
+      port: remotePort,
     }).then((response) => {
       console.log(response);
     });
-  };
-
-  const handleChangeOpenChannel = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRemoteIdentityPubkey(event.target.value);
   };
 
   const handleChangePubKey = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,22 +89,19 @@ function Connect() {
     setRemotePort(event.target.value);
   };
 
-  const connectPeer = () => {
-    Axios.post("http://localhost:3001/connectpeer", {
-      user_id_token: localStorage.getItem("isLoggedIn"),
-      pub_key: connectRemoteIdentityPubkey,
-      host: remoteHostAddress,
-      port: remotePort,
-    }).then((response) => {
-      console.log(response);
-    });
-  };
-
   return (
     <Grid container spacing={3}>
       <Grid xs={3}>
         <h3>Existing Connections to Peers</h3>
-        {existingPeers.length === 0 ? <p>No existing connections to peers</p> : <></>}
+        {existingPeers.length === 0 ? (
+          <p>No existing connections to peers</p>
+        ) : (
+          <ul style={{ listStyleType: "none" }}>
+            {connectedPeers.map((item, index) => (
+              <li key={index}>{item.name}</li>
+            ))}
+          </ul>
+        )}
         <Button onClick={reloadPeers} variant="contained">
           Reload Peers
         </Button>
@@ -153,28 +150,6 @@ function Connect() {
         <br></br>
         <Button onClick={connectPeer} variant="contained">
           Connect To Peer
-        </Button>
-      </Grid>
-      <Grid xs={3}>
-        <h3>Existing Channels</h3>
-        {existingChannels.length === 0 ? <p>No existing channels</p> : <></>}
-        <Button onClick={reloadChannels} variant="contained">
-          Reload Data
-        </Button>
-      </Grid>
-      <Grid xs={4}>
-        <h3>Open Channels Manually</h3>
-        <p>Your Identity Pubkey: {identityPubkey}</p>
-        <TextField
-          fullWidth
-          label="Partners' Identity PubKey"
-          value={remoteIdentityPubkey}
-          onChange={handleChangeOpenChannel}
-        />
-        <br></br>
-        <br></br>
-        <Button onClick={openChannel} variant="contained">
-          Open Channel
         </Button>
       </Grid>
     </Grid>
