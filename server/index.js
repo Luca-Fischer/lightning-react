@@ -111,6 +111,42 @@ app.get("/api/getNames", (req, res) => {
   });
 });
 
+// set PubKey
+app.post("/api/setPubkey", (req, res) => {
+  const id = req.body.id;
+  const decodedId = jwt.verify(id, "secretLightningKeyForId");
+  const pubkey = req.body.pubkey;
+  db.query(
+    "UPDATE users SET pubkey = ? WHERE id = ?",
+    [pubkey, decodedId.id],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Failed to update pubkey" });
+      }
+
+      res.status(200).json({ message: "Pubkey updated successfully" });
+    }
+  );
+});
+
+// get id and pubkey from db
+app.post("/api/getIdAndPubKey", (req, res) => {
+  const name = req.body.name;
+  db.query(
+    "SELECT id, pubkey FROM users WHERE name = ?",
+    [name],
+    (error, results) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Failed to fetch user" });
+      }
+      
+      res.status(200).json({ users: results });
+    }
+  );
+});
+
 // verify token
 app.get("/api/accessResource", (req, res) => {
   const token = req.headers.authorization.split(" ")[1];

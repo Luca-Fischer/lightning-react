@@ -1,19 +1,90 @@
 import React, { useEffect, useState, ChangeEvent } from "react";
-import Grid from "@mui/material/Unstable_Grid2";
 import Button from "@mui/material/Button";
 import Axios from "axios";
 import TextField from "@mui/material/TextField";
+import { useLocation } from "react-router-dom";
+
+interface Channel {
+  active: boolean;
+  remote_pubkey: string;
+  channel_point: string;
+  chan_id: string;
+  capacity: string;
+  local_balance: string;
+  remote_balance: string;
+  commit_fee: string;
+  commit_weight: string;
+  fee_per_kw: string;
+  unsettled_balance: string;
+  total_satoshis_sent: string;
+  total_satoshis_received: string;
+  num_updates: string;
+  pending_htlcs: HTLC[];
+  csv_delay: number;
+  private: boolean;
+  initiator: boolean;
+  chan_status_flags: string;
+  local_chan_reserve_sat: string;
+  remote_chan_reserve_sat: string;
+  static_remote_key: boolean;
+  commitment_type: CommitmentType;
+  lifetime: string;
+  uptime: string;
+  close_address: string;
+  push_amount_sat: string;
+  thaw_height: number;
+  local_constraints: ChannelConstraints;
+  remote_constraints: ChannelConstraints;
+  alias_scids: number[];
+  zero_conf: boolean;
+  zero_conf_confirmed_scid: string;
+}
+
+interface HTLC {
+  incoming: boolean;
+  amount: string;
+  hash_lock: string;
+  expiration_height: number;
+  htlc_index: string;
+  forwarding_channel: string;
+  forwarding_htlc_index: string;
+}
+
+interface ChannelConstraints {
+  csv_delay: number;
+  chan_reserve_sat: string;
+  dust_limit_sat: string;
+  max_pending_amt_msat: string;
+  min_htlc_msat: string;
+  max_accepted_htlcs: number;
+}
+
+enum CommitmentType {
+  UNKNOWN_COMMITMENT_TYPE = 0,
+  LEGACY = 1,
+  STATIC_REMOTE_KEY = 2,
+  ANCHORS = 3,
+  SCRIPT_ENFORCED_LEASE = 4,
+}
 
 function Channels() {
-  
-  const [existingChannels, setExistingChannels] = useState([]);
+  const [existingChannels, setExistingChannels] = useState<Channel[]>([]);
   const [identityPubkey, setIdentityPubkey] = useState("");
   const [remoteIdentityPubkey, setRemoteIdentityPubkey] = useState("");
+  const [channelAmount, setChannelAmount] = useState("");
+  const [channelAmountToSmall, setChannelAmountToSmall] = useState(false);
+
+  const location = useLocation();
 
   useEffect(() => {
     reloadChannels();
     getInfo();
-  }, []);
+    const searchParams = new URLSearchParams(location.search);
+    const responseDataString = searchParams.get("responseData");
+    const responseData = responseDataString && JSON.parse(responseDataString);
+
+    console.log(responseData); //TODO Put it in open channel manually and remove the rest and only channel amount is then required 
+  }, [location]);
 
   const reloadChannels = () => {
     Axios.post("http://localhost:3001/listchannels", {
@@ -32,45 +103,93 @@ function Channels() {
   };
 
   const openChannel = () => {
-    Axios.post("http://localhost:3001/openchannel", {
-      user_id_token: localStorage.getItem("isLoggedIn"),
-      identity_pub_key: remoteIdentityPubkey,
-    }).then((response) => {
-      console.log(response);
-    });
+    if (Number(channelAmount) > 20000) {
+      Axios.post("http://localhost:3001/openchannel", {
+        user_id_token: localStorage.getItem("isLoggedIn"),
+        identity_pub_key: remoteIdentityPubkey,
+        amount: channelAmount,
+      }).then((response) => {
+        console.log(response);
+      });
+    } else {
+      setChannelAmountToSmall(true);
+    }
   };
 
   const handleChangeOpenChannel = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    field: string
   ) => {
-    setRemoteIdentityPubkey(event.target.value);
+    switch (field) {
+      case "remoteIdentityPubkey":
+        setRemoteIdentityPubkey(event.target.value);
+        break;
+      case "channelAmount":
+        setChannelAmount(event.target.value);
+        break;
+      default:
+        break;
+    }
   };
 
   return (
-    <Grid container spacing={3}>
-      <Grid xs={3}>
-        <h3>Existing Channels</h3>
-        {existingChannels.length === 0 ? <p>No existing channels</p> : <></>}
-        <Button onClick={reloadChannels} variant="contained">
-          Reload Data
-        </Button>
-      </Grid>
-      <Grid xs={4}>
-        <h3>Open Channels Manually</h3>
-        <p>Your Identity Pubkey: {identityPubkey}</p>
+    <div>
+      <h3>Existing Channels</h3>
+      {existingChannels.length === 0 ? (
+        <p>No existing channels</p>
+      ) : (
+        <ul style={{ listStyleType: "none" }}>
+          {existingChannels.map((item, index) => (
+            <li key={index}>
+              <div>{item.remote_pubkey}</div>
+              <div>Item Capacity: {item.capacity}</div>
+              <div>Local Balance: {item.local_balance}</div>
+              <div>Remote Balance: {item.remote_balance}</div>
+              <div>Total Satoshis Sent: {item.total_satoshis_sent}</div>
+              <div>Total Satoshis Received: {item.total_satoshis_received}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Button onClick={reloadChannels} variant="contained">
+        Reload Data
+      </Button>
+
+      <h3 style={{ marginTop: "100px" }}>Open Channels Manually</h3>
+      <p>Your Identity Pubkey: {identityPubkey}</p>
+      <TextField
+        fullWidth
+        label="Partners' Identity PubKey"
+        value={remoteIdentityPubkey}
+        onChange={(event) =>
+          handleChangeOpenChannel(event, "remoteIdentityPubkey")
+        }
+      />
+      <br></br>
+      <br></br>
+      {!channelAmountToSmall ? (
         <TextField
           fullWidth
-          label="Partners' Identity PubKey"
-          value={remoteIdentityPubkey}
-          onChange={handleChangeOpenChannel}
+          label="ChannelAmount"
+          value={channelAmount}
+          onChange={(event) => handleChangeOpenChannel(event, "channelAmount")}
         />
-        <br></br>
-        <br></br>
-        <Button onClick={openChannel} variant="contained">
-          Open Channel
-        </Button>
-      </Grid>
-    </Grid>
+      ) : (
+        <TextField
+          error
+          fullWidth
+          label="ChannelAmount"
+          helperText="Minimum 20000 SAT"
+          value={channelAmount}
+          onChange={(event) => handleChangeOpenChannel(event, "channelAmount")}
+        />
+      )}
+      <br></br>
+      <br></br>
+      <Button onClick={openChannel} variant="contained">
+        Open Channel
+      </Button>
+    </div>
   );
 }
 

@@ -33,11 +33,19 @@ function Connect() {
     getUsers();
   }, []);
 
+  /*
+    TODO:
+    only peers from this app are visible on the application due to /getNames
+    others can be seen in /listpeers 
+    response is a field: features which contains name: https://api.lightning.community/api/lnd/lightning/list-peers/index.html#lnrpcfeature 
+    to do in future: see if that is suited, to list a different connected peer with name. otherwise only listable with address ?
+  */
   const reloadPeers = () => {
     Axios.post("http://localhost:3001/listpeers", {
       user_id_token: localStorage.getItem("isLoggedIn"),
     })
       .then((response) => {
+        console.log(response);
         setExistingPeers(response.data.peers);
         const addresses = response.data.peers.map((peer: Peer) => {
           const parts = peer.address.split(":");
@@ -52,7 +60,6 @@ function Connect() {
         });
       })
       .then((response) => {
-        console.log(response.data.names);
         setConnectedPeers(response.data.names);
       })
       .catch((error) => {
@@ -66,7 +73,24 @@ function Connect() {
     });
   };
 
+  const connectPeerByList = (name: string) => {
+    Axios.post("http://localhost:3002/api/getIdAndPubKey", {
+      name: name,
+    }).then((response) => {
+      Axios.post("http://localhost:3001/connectpeer", {
+        user_id_token: localStorage.getItem("isLoggedIn"),
+        pub_key: response.data.users[0].pubkey,
+        host: "localhost",
+        port: response.data.users[0].id + 10000,
+      }).then((response) => {
+        console.log(response);
+      });
+    });
+  };
+
   const connectPeer = () => {
+    console.log(connectRemoteIdentityPubkey);
+    console.log(remotePort);
     Axios.post("http://localhost:3001/connectpeer", {
       user_id_token: localStorage.getItem("isLoggedIn"),
       pub_key: connectRemoteIdentityPubkey,
@@ -77,28 +101,57 @@ function Connect() {
     });
   };
 
-  const handleChangePubKey = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setConnectRemoteIdentityPubkey(event.target.value);
+  const openChannel = (name: string) => {
+    console.log(name)
+    Axios.post("http://localhost:3002/api/getIdAndPubKey", {
+      name: name,
+    }).then((response) => {
+      console.log(response)
+      const responseData = response.data;
+      window.location.href = `http://localhost:3000/Channels?responseData=${JSON.stringify(responseData)}`
+    });
   };
-  const handleChangeHostAddress = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRemoteHostAddress(event.target.value);
-  };
-  const handleChangePort = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRemotePort(event.target.value);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    switch (name) {
+      case "connectRemoteIdentityPubkey":
+        setConnectRemoteIdentityPubkey(value);
+        break;
+      case "remoteHostAddress":
+        setRemoteHostAddress(value);
+        break;
+      case "remotePort":
+        setRemotePort(value);
+        break;
+      default:
+        break;
+    }
   };
 
   return (
-    <Grid container spacing={3}>
-      <Grid xs={3}>
+    <Grid container spacing={2}>
+      <Grid xs={5}>
         <h3>Existing Connections to Peers</h3>
         {existingPeers.length === 0 ? (
           <p>No existing connections to peers</p>
         ) : (
-          <ul style={{ listStyleType: "none" }}>
+          <ul style={{ listStyleType: "none", padding: 0 }}>
             {connectedPeers.map((item, index) => (
-              <li key={index}>{item.name}</li>
+              <li key={index}>
+                <Grid
+                  container
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Grid>{item.name}</Grid>
+                  <Grid>
+                    <Button onClick={() => openChannel(item.name)}>
+                      Open Channel
+                    </Button>
+                  </Grid>
+                </Grid>
+              </li>
             ))}
           </ul>
         )}
@@ -106,7 +159,7 @@ function Connect() {
           Reload Peers
         </Button>
       </Grid>
-      <Grid xs={4}>
+      <Grid xs={6}>
         <h3>Connect to new Peers</h3>
         <TextField
           fullWidth
@@ -117,8 +170,21 @@ function Connect() {
           placeholder="Search..."
         />
         <ul style={{ listStyleType: "none", padding: 20 }}>
-          {filteredNames.map((item, index) => (
-            <li key={index}>{item}</li>
+          {filteredNames.map((name, index) => (
+            <li key={index}>
+              <Grid
+                container
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Grid>{name}</Grid>
+                <Grid>
+                  <Button onClick={() => connectPeerByList(name)}>
+                    Connect
+                  </Button>
+                </Grid>
+              </Grid>
+            </li>
           ))}
         </ul>
       </Grid>
@@ -127,24 +193,27 @@ function Connect() {
         <TextField
           fullWidth
           label="PubKey"
+          name="connectRemoteIdentityPubkey"
           value={connectRemoteIdentityPubkey}
-          onChange={handleChangePubKey}
+          onChange={handleChange}
         />
         <br></br>
         <br></br>
         <TextField
           fullWidth
           label="Host Address"
+          name="remoteHostAddress"
           value={remoteHostAddress}
-          onChange={handleChangeHostAddress}
+          onChange={handleChange}
         />
         <br></br>
         <br></br>
         <TextField
           fullWidth
           label="Port"
+          name="remotePort"
           value={remotePort}
-          onChange={handleChangePort}
+          onChange={handleChange}
         />
         <br></br>
         <br></br>

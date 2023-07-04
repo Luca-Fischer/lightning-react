@@ -28,7 +28,7 @@ function Register() {
     getUsers();
   }, [name]);
 
-  const createUser = () => {
+  const createUser = async () => {
     getUsers();
     if (emails.includes(email)) {
       setEmailUsed(true);
@@ -40,36 +40,42 @@ function Register() {
     }
     if (password.length >= 8) {
       setLoader(true);
-      Axios.post("http://localhost:3002/api/create", {
-        name: name,
-        email: email,
-        password: password,
-      })
-        .then((response) => {
-          localStorage.setItem("isLoggedIn", response.data.token);
-          setTimeout(() => {
-            const requestBody = {
-              wallet_password: password,
-              user_id: response.data.id,
-            };
-
-            Axios.post("http://localhost:3001/initwallet", requestBody)
-              .then((response) => {
-                console.log(response.data);
-              })
-              .catch((error) => {
-                console.log(error);
-              });
-            window.location.href = "http://localhost:3000/"; // force rerender otherwise localStorage item is updated to late
-          }, 1000); // timeout to wait for terminal to start
-        })
-        .catch((error) => {
-          console.error(error);
+      try {
+        const response = await Axios.post("http://localhost:3002/api/create", {
+          name: name,
+          email: email,
+          password: password,
         });
+        localStorage.setItem("isLoggedIn", response.data.token);
+  
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+  
+        const initWalletResponse = await Axios.post("http://localhost:3001/initwallet", {
+          wallet_password: password,
+          user_id: response.data.id,
+        });
+        console.log(initWalletResponse.data);
+  
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+  
+        const getinfoResponse = await Axios.post("http://localhost:3001/getinfo", {
+          user_id_token: localStorage.getItem("isLoggedIn"),
+        });
+        await Axios.post("http://localhost:3002/api/setPubkey", {
+          id: localStorage.getItem("isLoggedIn"),
+          pubkey: getinfoResponse.data.identity_pubkey,
+        });
+  
+        window.location.href = "http://localhost:3000/";
+      } catch (error) {
+        console.error(error);
+      }
     } else {
       setpasswordToShort(true);
     }
   };
+  
+  
 
   const getUsers = () => {
     Axios.get("http://localhost:3002/api/getUserInfos").then((response) => {

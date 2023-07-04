@@ -165,7 +165,6 @@ app.post("/getinfo", (req, res) => {
 
 // connect peer
 app.post("/connectpeer", (req, res) => {
-  console.log(req.body.pub_key);
   const token = jwt.verify(req.body.user_id_token, "secretLightningKeyForId");
   const host = req.body.host + ":" + req.body.port;
   const REST_PORT = token.id;
@@ -228,9 +227,10 @@ app.post("/listpeers", (req, res) => {
 // open channel
 app.post("/openchannel", (req, res) => {
   const token = jwt.verify(req.body.user_id_token, "secretLightningKeyForId");
-  const identity_pub_key = Buffer.from(req.body.identity_pub_key).toString(
-    "base64"
-  );
+  const buffer = Buffer.from(req.body.identity_pub_key, "hex");
+  const base64String = buffer.toString("base64");
+  const channelAmount = req.body.amount;
+
   const REST_PORT = token.id;
   const MACAROON_PATH =
     "/Users/lucafischer/Library/Application Support/lnd" +
@@ -239,8 +239,8 @@ app.post("/openchannel", (req, res) => {
 
   let requestBody = {
     sat_per_vbyte: 1,
-    node_pubkey: identity_pub_key,
-    local_funding_amount: 1000000,
+    node_pubkey: base64String,
+    local_funding_amount: channelAmount,
     min_confs: 0,
   };
 
