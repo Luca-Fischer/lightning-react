@@ -279,6 +279,7 @@ app.post("/listchannels", (req, res) => {
     if (error) {
       res.status(500).json({ error: "Internal Server Error" });
     } else {
+      console.log(body);
       res.json(body);
     }
   });

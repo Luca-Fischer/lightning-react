@@ -111,6 +111,17 @@ app.get("/api/getNames", (req, res) => {
   });
 });
 
+// get all names and pubkey by pubkey
+app.get("/api/getNamesByPubkey", (req, res) => {
+  const pubkey = req.query.pubkey;
+  console.log("!!!")
+  console.log(pubkey)
+  db.query(`SELECT name, pubkey FROM users WHERE pubkey IN (?)`, [pubkey], (err, result) => {
+    console.log(result);
+    res.json({ result: result });
+  });  
+});
+
 // set PubKey
 app.post("/api/setPubkey", (req, res) => {
   const id = req.body.id;

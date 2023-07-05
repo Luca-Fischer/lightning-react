@@ -161,7 +161,7 @@ function Home() {
                   <>
                     <b>Send BTC to this address:</b>
                     {newAddress}
-                    &nbsp;&nbsp;
+                   
                     <div onClick={copied} className="hover-button">
                       <CopyToClipboardButton text={newAddress} />
                     </div>

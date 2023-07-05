@@ -4,6 +4,11 @@ import Axios from "axios";
 import TextField from "@mui/material/TextField";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
+import Accordion from "@mui/material/Accordion";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import Typography from "@mui/material/Typography";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 interface Channel {
   active: boolean;
@@ -77,6 +82,8 @@ function Channels() {
   const [name, setName] = useState<string | null>(null);
   const location = useLocation();
 
+  const [result, setResult] = useState<{ name: string; pubkey: string }[]>([]);
+
   const errorResponse = {
     error: {
       code: 1,
@@ -88,7 +95,7 @@ function Channels() {
   const message = `${encodeURIComponent(JSON.stringify(errorResponse))}`;
 
   useEffect(() => {
-    reloadChannels();
+    loadChannels();
     getInfo();
     const searchParams = new URLSearchParams(location.search);
     const responseDataString = searchParams.get("responseData");
@@ -100,12 +107,33 @@ function Channels() {
     }
   }, [location]);
 
-  const reloadChannels = () => {
+  const loadChannels = () => {
+    const remotePubkeys: string[] = [];
+
     Axios.post("http://localhost:3001/listchannels", {
       user_id_token: localStorage.getItem("isLoggedIn"),
-    }).then((response) => {
-      setExistingChannels(response.data.channels);
-    });
+    })
+      .then((response) => {
+        setExistingChannels(response.data.channels);
+        response.data.channels.forEach((item: { remote_pubkey: string }) => {
+          const remotePubkey = item.remote_pubkey;
+          if (!remotePubkeys.includes(remotePubkey)) {
+            remotePubkeys.push(remotePubkey);
+          }
+        });
+
+        return Axios.get("http://localhost:3002/api/getNamesByPubkey", {
+          params: {
+            pubkey: remotePubkeys,
+          },
+        });
+      })
+      .then((response) => {
+        setResult(response.data.result);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   const getInfo = () => {
@@ -148,6 +176,13 @@ function Channels() {
     }
   };
 
+  const [expanded, setExpanded] = React.useState<string | false>(false);
+
+  const expand =
+    (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpanded(isExpanded ? panel : false);
+    };
+
   return (
     <div>
       {!name ? (
@@ -156,22 +191,48 @@ function Channels() {
           {existingChannels.length === 0 ? (
             <p>No existing channels</p>
           ) : (
-            <ul style={{ listStyleType: "none" }}>
-              {existingChannels.map((item, index) => (
-                <li key={index}>
-                  <div>{item.remote_pubkey}</div>
-                  <div>Item Capacity: {item.capacity}</div>
-                  <div>Local Balance: {item.local_balance}</div>
-                  <div>Remote Balance: {item.remote_balance}</div>
-                  <div>Total Satoshis Sent: {item.total_satoshis_sent}</div>
-                  <div>
-                    Total Satoshis Received: {item.total_satoshis_received}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div>
+              {existingChannels.map((item, index) => {
+                const matchingResult = result.find(
+                  (r) => r.pubkey === item.remote_pubkey
+                );
+
+                return (
+                  <Accordion
+                    expanded={expanded === `panel${index + 1}`}
+                    onChange={expand(`panel${index + 1}`)}
+                  >
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                      aria-controls="panel4bh-content"
+                      id="panel4bh-header"
+                    >
+                      <Typography sx={{ width: "33%", flexShrink: 0 }}>
+                        {matchingResult ? matchingResult.name : "Name"}
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Typography>
+                        <div>{item.remote_pubkey}</div>
+                        <div>Item Capacity: {item.capacity}</div>
+                        <div>Local Balance: {item.local_balance}</div>
+                        <div>Remote Balance: {item.remote_balance}</div>
+                        <div>
+                          Total Satoshis Sent: {item.total_satoshis_sent}
+                        </div>
+                        <div>
+                          Total Satoshis Received:{" "}
+                          {item.total_satoshis_received}
+                        </div>
+                      </Typography>
+                    </AccordionDetails>
+                  </Accordion>
+                );
+              })}
+            </div>
           )}
-          <Button onClick={reloadChannels} variant="contained">
+          <br></br>
+          <Button onClick={loadChannels} variant="contained">
             Reload Data
           </Button>
 
