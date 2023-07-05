@@ -108,7 +108,7 @@ function Connect() {
     }).then((response) => {
       console.log(response)
       const responseData = response.data;
-      window.location.href = `http://localhost:3000/Channels?responseData=${JSON.stringify(responseData)}`
+      window.location.href = `http://localhost:3000/Channels?responseData=${JSON.stringify(responseData)}&name=${name}`
     });
   };
 

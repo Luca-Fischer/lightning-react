@@ -15,7 +15,7 @@ import Stack from "@mui/material/Stack";
 function Navbar() {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const [, setForceRender] = useState("");
-  
+
   const logout = () => {
     localStorage.setItem("isLoggedIn", "false");
     setForceRender(" ");
@@ -58,6 +58,11 @@ function Navbar() {
               <Link to="/Channels" style={{ textDecoration: "none" }}>
                 <Button sx={{ my: 2, color: "white", display: "block" }}>
                   Channels
+                </Button>
+              </Link>
+              <Link to="/handling" style={{ textDecoration: "none" }}>
+                <Button sx={{ my: 2, color: "white", display: "block" }}>
+                  handling
                 </Button>
               </Link>
             </Stack>

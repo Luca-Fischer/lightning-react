@@ -3,6 +3,7 @@ import Button from "@mui/material/Button";
 import Axios from "axios";
 import TextField from "@mui/material/TextField";
 import { useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface Channel {
   active: boolean;
@@ -73,8 +74,18 @@ function Channels() {
   const [remoteIdentityPubkey, setRemoteIdentityPubkey] = useState("");
   const [channelAmount, setChannelAmount] = useState("");
   const [channelAmountToSmall, setChannelAmountToSmall] = useState(false);
-
+  const [name, setName] = useState<string | null>(null);
   const location = useLocation();
+
+  const errorResponse = {
+    error: {
+      code: 1,
+      message: "Wait for block confirmation!",
+      details: [],
+    },
+  };
+
+  const message = `${encodeURIComponent(JSON.stringify(errorResponse))}`;
 
   useEffect(() => {
     reloadChannels();
@@ -83,7 +94,10 @@ function Channels() {
     const responseDataString = searchParams.get("responseData");
     const responseData = responseDataString && JSON.parse(responseDataString);
 
-    console.log(responseData); //TODO Put it in open channel manually and remove the rest and only channel amount is then required 
+    if (responseData) {
+      setName(searchParams.get("name"));
+      setRemoteIdentityPubkey(responseData.users[0].pubkey);
+    }
   }, [location]);
 
   const reloadChannels = () => {
@@ -103,13 +117,15 @@ function Channels() {
   };
 
   const openChannel = () => {
-    if (Number(channelAmount) > 20000) {
+    console.log(remoteIdentityPubkey);
+    console.log(channelAmount);
+    if (Number(channelAmount) >= 20000) {
       Axios.post("http://localhost:3001/openchannel", {
         user_id_token: localStorage.getItem("isLoggedIn"),
         identity_pub_key: remoteIdentityPubkey,
         amount: channelAmount,
       }).then((response) => {
-        console.log(response);
+        console.log(response.data);
       });
     } else {
       setChannelAmountToSmall(true);
@@ -134,61 +150,123 @@ function Channels() {
 
   return (
     <div>
-      <h3>Existing Channels</h3>
-      {existingChannels.length === 0 ? (
-        <p>No existing channels</p>
-      ) : (
-        <ul style={{ listStyleType: "none" }}>
-          {existingChannels.map((item, index) => (
-            <li key={index}>
-              <div>{item.remote_pubkey}</div>
-              <div>Item Capacity: {item.capacity}</div>
-              <div>Local Balance: {item.local_balance}</div>
-              <div>Remote Balance: {item.remote_balance}</div>
-              <div>Total Satoshis Sent: {item.total_satoshis_sent}</div>
-              <div>Total Satoshis Received: {item.total_satoshis_received}</div>
-            </li>
-          ))}
-        </ul>
-      )}
-      <Button onClick={reloadChannels} variant="contained">
-        Reload Data
-      </Button>
+      {!name ? (
+        <div>
+          <h3>Existing Channels</h3>
+          {existingChannels.length === 0 ? (
+            <p>No existing channels</p>
+          ) : (
+            <ul style={{ listStyleType: "none" }}>
+              {existingChannels.map((item, index) => (
+                <li key={index}>
+                  <div>{item.remote_pubkey}</div>
+                  <div>Item Capacity: {item.capacity}</div>
+                  <div>Local Balance: {item.local_balance}</div>
+                  <div>Remote Balance: {item.remote_balance}</div>
+                  <div>Total Satoshis Sent: {item.total_satoshis_sent}</div>
+                  <div>
+                    Total Satoshis Received: {item.total_satoshis_received}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Button onClick={reloadChannels} variant="contained">
+            Reload Data
+          </Button>
 
-      <h3 style={{ marginTop: "100px" }}>Open Channels Manually</h3>
-      <p>Your Identity Pubkey: {identityPubkey}</p>
-      <TextField
-        fullWidth
-        label="Partners' Identity PubKey"
-        value={remoteIdentityPubkey}
-        onChange={(event) =>
-          handleChangeOpenChannel(event, "remoteIdentityPubkey")
-        }
-      />
-      <br></br>
-      <br></br>
-      {!channelAmountToSmall ? (
-        <TextField
-          fullWidth
-          label="ChannelAmount"
-          value={channelAmount}
-          onChange={(event) => handleChangeOpenChannel(event, "channelAmount")}
-        />
+          <h3 style={{ marginTop: "100px" }}>Open Channels Manually</h3>
+          <p>Your Identity Pubkey: {identityPubkey}</p>
+          <TextField
+            fullWidth
+            label="Partners' Identity PubKey"
+            value={remoteIdentityPubkey}
+            onChange={(event) =>
+              handleChangeOpenChannel(event, "remoteIdentityPubkey")
+            }
+          />
+          <br></br>
+          <br></br>
+          {!channelAmountToSmall ? (
+            <TextField
+              fullWidth
+              label="Channel Amount"
+              value={channelAmount}
+              onChange={(event) =>
+                handleChangeOpenChannel(event, "channelAmount")
+              }
+            />
+          ) : (
+            <TextField
+              error
+              fullWidth
+              label="ChannelAmount"
+              helperText="Minimum 20000 SAT"
+              value={channelAmount}
+              onChange={(event) =>
+                handleChangeOpenChannel(event, "channelAmount")
+              }
+            />
+          )}
+          <br></br>
+          <br></br>
+          <Link
+            to={{ pathname: "/handling", search: `?responseData=${message}` }}
+            style={{ textDecoration: "none" }}
+          >
+            <Button onClick={openChannel} variant="contained">
+              Open Channel
+            </Button>
+          </Link>
+        </div>
       ) : (
-        <TextField
-          error
-          fullWidth
-          label="ChannelAmount"
-          helperText="Minimum 20000 SAT"
-          value={channelAmount}
-          onChange={(event) => handleChangeOpenChannel(event, "channelAmount")}
-        />
+        <div>
+          {" "}
+          <h3 style={{ marginTop: "100px" }}>Open Channel with {name}</h3>
+          <p>Only Channel Amount is required!</p>
+          <TextField
+            fullWidth
+            label="Partners' Identity PubKey"
+            value={remoteIdentityPubkey}
+            onChange={(event) =>
+              handleChangeOpenChannel(event, "remoteIdentityPubkey")
+            }
+          />
+          <br></br>
+          <br></br>
+          {!channelAmountToSmall ? (
+            <TextField
+              fullWidth
+              label="Channel Amount"
+              value={channelAmount}
+              onChange={(event) =>
+                handleChangeOpenChannel(event, "channelAmount")
+              }
+            />
+          ) : (
+            <TextField
+              error
+              fullWidth
+              label="ChannelAmount"
+              helperText="Minimum 20000 SAT"
+              value={channelAmount}
+              onChange={(event) =>
+                handleChangeOpenChannel(event, "channelAmount")
+              }
+            />
+          )}
+          <br></br>
+          <br></br>
+          <Link
+            to={{ pathname: "/handling", search: `?responseData=${message}` }}
+            style={{ textDecoration: "none" }}
+          >
+            <Button onClick={openChannel} variant="contained">
+              Open Channel
+            </Button>
+          </Link>
+        </div>
       )}
-      <br></br>
-      <br></br>
-      <Button onClick={openChannel} variant="contained">
-        Open Channel
-      </Button>
     </div>
   );
 }

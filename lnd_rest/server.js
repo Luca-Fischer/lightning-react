@@ -38,7 +38,6 @@ app.post("/walletbalance", (req, res) => {
     if (error) {
       res.status(500).json({ error: "Internal Server Error" });
     } else {
-      console.log(body);
       res.json(body);
     }
   });
@@ -65,7 +64,6 @@ app.post("/newaddress", (req, res) => {
     if (error) {
       res.status(500).json({ error: "Internal Server Error" });
     } else {
-      console.log(body);
       res.json(body);
     }
   });
@@ -91,7 +89,6 @@ app.post("/initwallet", async (req, res) => {
         if (error) {
           reject(error);
         } else {
-          console.log(body);
           cipher_seed_mnemonic.push(...body.cipher_seed_mnemonic);
           resolve();
         }
@@ -106,7 +103,6 @@ app.post("/initwallet", async (req, res) => {
           wallet_password: wallet_password,
           cipher_seed_mnemonic: cipher_seed_mnemonic,
         };
-        console.log("INNITWALLET");
         let options = {
           url: `https://localhost:${REST_PORT}/v1/initwallet`,
           rejectUnauthorized: false,
@@ -124,7 +120,6 @@ app.post("/initwallet", async (req, res) => {
 
     try {
       const { response, body } = await makeRequest();
-      console.log(body);
       res.json({ cipher_seed_mnemonic }); // TODO: mnemonic get send back but not used yet
     } catch (error) {
       console.error(error);
@@ -157,7 +152,6 @@ app.post("/getinfo", (req, res) => {
     if (error) {
       res.status(500).json({ error: "Internal Server Error" });
     } else {
-      console.log(body);
       res.json(body);
     }
   });
@@ -177,7 +171,6 @@ app.post("/connectpeer", (req, res) => {
     pubkey: req.body.pub_key,
     host: host,
   };
-  console.log(addr);
 
   let requestBody = {
     addr: addr,
@@ -193,7 +186,6 @@ app.post("/connectpeer", (req, res) => {
     form: JSON.stringify(requestBody),
   };
   request.post(options, function (error, response, body) {
-    console.log(body);
     res.json(body);
   });
 });
@@ -218,7 +210,6 @@ app.post("/listpeers", (req, res) => {
     if (error) {
       res.status(500).json({ error: "Internal Server Error" });
     } else {
-      console.log(body);
       res.json(body);
     }
   });
@@ -253,8 +244,17 @@ app.post("/openchannel", (req, res) => {
     },
     form: JSON.stringify(requestBody),
   };
+  console.log("!!!!!!!!!!!!!");
   request.post(options, function (error, response, body) {
+    console.log("HIER");
+    if (error) {
+      console.error(error);
+      res.send(error);
+      return;
+    }
+    console.log("BODY");
     console.log(body);
+    res.send(body);
   });
 });
 
@@ -279,7 +279,6 @@ app.post("/listchannels", (req, res) => {
     if (error) {
       res.status(500).json({ error: "Internal Server Error" });
     } else {
-      console.log(body);
       res.json(body);
     }
   });
