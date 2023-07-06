@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CardContent from "@mui/material/CardContent";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
@@ -22,14 +22,14 @@ interface WalletBalance {
 }
 
 function Home() {
-  // TODO: Check always if localstorage token is there, otherwise log out
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [newAddress, setNewAddress] = React.useState("");
+  const [newAddress, setNewAddress] = useState("");
 
-  const [isCopied, setIsCopied] = React.useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   // TODO: unclear which are required, if not used can be removed
-  const [walletBalance, setWalletBalance] = React.useState<WalletBalance>({
+  const [walletBalance, setWalletBalance] = useState<WalletBalance>({
     total_balance: "0",
     confirmend_balance: "0",
     unconfirmend_balance: "0",
@@ -39,8 +39,28 @@ function Home() {
   });
 
   useEffect(() => {
+    checkToken();
     reloadData();
   }, []);
+
+  const checkToken = () => {
+    const token = localStorage.getItem("isLoggedIn");
+
+    Axios.get("http://localhost:3002/api/accessResource", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then((response) => {
+      if (!response.data.success) {
+        const responseData = "false";
+        window.location.href = `http://localhost:3000/Login?responseData=${JSON.stringify(
+          responseData
+        )}`;
+      } else {
+        setIsLoading(false);
+      }
+    });
+  };
 
   const reloadData = () => {
     Axios.post("http://localhost:3001/walletbalance", {
@@ -76,6 +96,10 @@ function Home() {
   const copied = () => {
     setIsCopied(true);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -161,7 +185,7 @@ function Home() {
                   <>
                     <b>Send BTC to this address:</b>
                     {newAddress}
-                   
+
                     <div onClick={copied} className="hover-button">
                       <CopyToClipboardButton text={newAddress} />
                     </div>

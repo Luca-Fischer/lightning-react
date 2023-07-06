@@ -9,6 +9,8 @@ interface Peer {
 }
 
 function Connect() {
+  const [isLoading, setIsLoading] = useState(true);
+
   const [existingPeers, setExistingPeers] = useState([]);
   const [names, setNames] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -29,9 +31,29 @@ function Connect() {
   };
 
   useEffect(() => {
+    checkToken();
     reloadPeers();
     getUsers();
   }, []);
+
+  const checkToken = () => {
+    const token = localStorage.getItem("isLoggedIn");
+
+    Axios.get("http://localhost:3002/api/accessResource", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then((response) => {
+      if (!response.data.success) {
+        const responseData = "false";
+        window.location.href = `http://localhost:3000/Login?responseData=${JSON.stringify(
+          responseData
+        )}`;
+      } else {
+        setIsLoading(false);
+      }
+    });
+  };
 
   /*
     TODO:
@@ -128,6 +150,10 @@ function Connect() {
         break;
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>; 
+  }
 
   return (
     <Grid container spacing={2}>

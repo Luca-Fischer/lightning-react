@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Button from "@mui/material/Button";
 import Axios from "axios";
@@ -7,6 +7,7 @@ import Alert from "@mui/material/Alert";
 import TextField from "@mui/material/TextField";
 
 function Payment() {
+  const [isLoading, setIsLoading] = useState(true);
   const [amount, setAmount] = useState("");
   const [invoice, setInvoice] = useState({
     add_index: "",
@@ -31,6 +32,29 @@ function Payment() {
       name = dataParts[1];
     }
   }
+
+  useEffect(() => {
+    checkToken();
+  }, []);
+
+  const checkToken = () => {
+    const token = localStorage.getItem("isLoggedIn");
+
+    Axios.get("http://localhost:3002/api/accessResource", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then((response) => {
+      if (!response.data.success) {
+        const responseData = "false";
+        window.location.href = `http://localhost:3000/Login?responseData=${JSON.stringify(
+          responseData
+        )}`;
+      } else {
+        setIsLoading(false);
+      }
+    });
+  };
 
   const addInvoice = () => {
     if (Number(amount) > 0) {
@@ -65,6 +89,10 @@ function Payment() {
       setAmount(input);
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>

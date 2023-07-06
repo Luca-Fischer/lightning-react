@@ -74,6 +74,7 @@ enum CommitmentType {
 }
 
 function Channels() {
+  const [isLoading, setIsLoading] = useState(true);
   const [existingChannels, setExistingChannels] = useState<Channel[]>([]);
   const [identityPubkey, setIdentityPubkey] = useState("");
   const [remoteIdentityPubkey, setRemoteIdentityPubkey] = useState("");
@@ -97,6 +98,7 @@ function Channels() {
   const message = `${encodeURIComponent(JSON.stringify(errorResponse))}`;
 
   useEffect(() => {
+    checkToken();
     loadChannels();
     getInfo();
     const searchParams = new URLSearchParams(location.search);
@@ -108,6 +110,30 @@ function Channels() {
       setRemoteIdentityPubkey(responseData.users[0].pubkey);
     }
   }, [location]);
+
+  const checkToken = () => {
+    const token = localStorage.getItem("isLoggedIn");
+
+    Axios.get("http://localhost:3002/api/accessResource", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).then((response) => {
+      if (!response.data.success) {
+        const responseData = "false";
+        window.location.href = `http://localhost:3000/Login?responseData=${JSON.stringify(
+          responseData
+        )}`;
+      } else {
+        setIsLoading(false);
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      setIsLoading(false);
+    });
+
+  };
 
   const loadChannels = () => {
     const remotePubkeys: string[] = [];
@@ -179,12 +205,16 @@ function Channels() {
     }
   };
 
-  const [expanded, setExpanded] = React.useState<string | false>(false);
+  const [expanded, setExpanded] = useState<string | false>(false);
 
   const expand =
     (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -232,7 +262,9 @@ function Channels() {
                           to={{
                             pathname: "/payment",
                             search: `?responseData=${
-                              matchingResult ? `${matchingResult.id}-sep-${matchingResult.name}` : ""
+                              matchingResult
+                                ? `${matchingResult.id}-sep-${matchingResult.name}`
+                                : ""
                             }`,
                           }}
                           style={{ textDecoration: "none" }}

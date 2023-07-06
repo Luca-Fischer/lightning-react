@@ -182,9 +182,13 @@ app.get("/api/accessResource", (req, res) => {
       .status(200)
       .json({ success: false, message: "Error! Token was not provided" });
   }
-  const decodedToken = jwt.verify(token, "secretLightningKeyForId");
-  res.status(200).json({ success: true, data: { id: decodedToken.id } });
-  console.log("Valid Token");
+  try {
+    const decodedToken = jwt.verify(token, "secretLightningKeyForId");
+    res.status(200).json({ success: true, data: { id: decodedToken.id } });
+    console.log("Valid Token");
+  } catch (error) {
+    res.status(200).json({ success: false, message: "Invalid token" });
+  }
 });
 
 const openTerminal = (id) => {
