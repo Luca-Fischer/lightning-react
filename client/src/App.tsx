@@ -7,6 +7,7 @@ import History from "./Pages/History";
 import Connect from "./Pages/Connect";
 import Channels from "./Pages/Channels";
 import Handling from "./Components/Handling";
+import Payment from "./Pages/Payment";
 import Box from "@mui/material/Box";
 
 import Navbar from "./Components/Navbar";
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/Connect" element={<Connect />} />
         <Route path="/Channels" element={<Channels />} />
         <Route path="/Handling" element={<Handling />} />
+        <Route path="/Payment" element={<Payment />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Register" element={<Register />} />
       </Routes>

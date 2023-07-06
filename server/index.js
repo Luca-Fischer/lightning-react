@@ -114,11 +114,28 @@ app.get("/api/getNames", (req, res) => {
 // get all id, names and pubkey by pubkey
 app.get("/api/getByPubkey", (req, res) => {
   const pubkey = req.query.pubkey;
-  console.log(pubkey)
-  db.query(`SELECT id, name, pubkey FROM users WHERE pubkey IN (?)`, [pubkey], (err, result) => {
-    console.log(result);
-    res.json({ result: result }); // TODO: does the id in result has to be sign with secretLightningKeyForId???
-  });  
+  console.log(pubkey);
+  db.query(
+    `SELECT id, name, pubkey FROM users WHERE pubkey IN (?)`,
+    [pubkey],
+    (err, result) => {
+      console.log(result);
+      const modifiedResult = result.map((row) => {
+        const userId = row.id;
+
+        const token = jwt.sign({ id: userId }, "secretLightningKeyForId", {
+          expiresIn: "1h",
+        });
+
+        return {
+          ...row,
+          id: token,
+        };
+      });
+      console.log(modifiedResult);
+      res.json({ result: modifiedResult }); // TODO: does the id in result has to be sign with secretLightningKeyForId???
+    }
+  );
 });
 
 // set PubKey
@@ -151,7 +168,7 @@ app.post("/api/getIdAndPubKey", (req, res) => {
         console.error(error);
         return res.status(500).json({ error: "Failed to fetch user" });
       }
-      
+
       res.status(200).json({ users: results });
     }
   );

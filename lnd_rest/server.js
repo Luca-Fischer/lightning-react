@@ -310,6 +310,37 @@ app.post("/addinvoice", (req, res) => {
   });
 });
 
+// send payment
+app.post("/sendpayment", (req, res) => {
+  const token = jwt.verify(req.body.user_id_token, "secretLightningKeyForId");
+  const REST_PORT = token.id;
+  const MACAROON_PATH =
+    "/Users/lucafischer/Library/Application Support/lnd" +
+    token.id +
+    "/data/chain/bitcoin/regtest/admin.macaroon";
+  const payment_request = req.body.payment_request;
+  const amount = req.body.amount;
+
+  let requestBody = {
+    payment_request: payment_request,
+    timeout_seconds: 60,
+    amt: amount
+  };
+  let options = {
+    url: `https://localhost:${REST_PORT}/v2/router/send`,
+    rejectUnauthorized: false,
+    json: true,
+    headers: {
+      "Grpc-Metadata-macaroon": fs.readFileSync(MACAROON_PATH).toString("hex"),
+    },
+    form: JSON.stringify(requestBody),
+  };
+  request.post(options, function (error, response, body) {
+    console.log(body);
+    res.json(body);
+  });
+});
+
 app.listen(3001, "localhost", () => {
   console.log("Server is running on http://localhost:3001");
 });

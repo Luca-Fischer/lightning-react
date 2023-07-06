@@ -62,7 +62,12 @@ function Navbar() {
               </Link>
               <Link to="/handling" style={{ textDecoration: "none" }}>
                 <Button sx={{ my: 2, color: "white", display: "block" }}>
-                  handling
+                  Handling
+                </Button>
+              </Link>
+              <Link to="/payment" style={{ textDecoration: "none" }}>
+                <Button sx={{ my: 2, color: "white", display: "block" }}>
+                  Payment
                 </Button>
               </Link>
             </Stack>

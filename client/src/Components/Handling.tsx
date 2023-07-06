@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import MuiAlert, { AlertProps } from "@mui/material/Alert";
 import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
+import Alert from '@mui/material/Alert';
 
-const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
-  props,
-  ref
-) {
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
 
 function Handling() {
   const location = useLocation();
@@ -30,9 +24,9 @@ function Handling() {
   return (
     <div>
       {type === 2 ? (
-        <Alert severity="error">{message}</Alert>
+        <Alert variant="filled" severity="error">{message}</Alert>
       ) : (
-        <Alert severity="success">{message}</Alert>
+        <Alert variant="filled" severity="success">{message}</Alert>
       )}
       <br></br>
       <br></br>
