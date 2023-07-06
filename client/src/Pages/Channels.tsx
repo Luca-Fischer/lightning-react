@@ -82,7 +82,7 @@ function Channels() {
   const [name, setName] = useState<string | null>(null);
   const location = useLocation();
 
-  const [result, setResult] = useState<{ name: string; pubkey: string }[]>([]);
+  const [result, setResult] = useState<{ id: string; name: string; pubkey: string }[]>([]);
 
   const errorResponse = {
     error: {
@@ -122,7 +122,7 @@ function Channels() {
           }
         });
 
-        return Axios.get("http://localhost:3002/api/getNamesByPubkey", {
+        return Axios.get("http://localhost:3002/api/getByPubkey", {
           params: {
             pubkey: remotePubkeys,
           },
@@ -130,6 +130,7 @@ function Channels() {
       })
       .then((response) => {
         setResult(response.data.result);
+        console.log(response.data.result);
       })
       .catch((error) => {
         console.error(error);
@@ -174,6 +175,10 @@ function Channels() {
       default:
         break;
     }
+  };
+
+  const doSomething = (id: string) => {
+    console.log(id)
   };
 
   const [expanded, setExpanded] = React.useState<string | false>(false);
@@ -224,6 +229,10 @@ function Channels() {
                           Total Satoshis Received:{" "}
                           {item.total_satoshis_received}
                         </div>
+                        <br></br>
+                        <Button onClick={() => doSomething(matchingResult ? matchingResult.id : "")} variant="contained">
+                          Make Payment
+                        </Button>
                       </Typography>
                     </AccordionDetails>
                   </Accordion>

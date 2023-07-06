@@ -76,7 +76,7 @@ app.post("/initwallet", async (req, res) => {
     "base64"
   );
 
-  const REST_PORT = req.body.user_id;
+  const REST_PORT = req.body.user_id; // TODO: user_id only possible like this? or as well with secretLightningKeyForId???
 
   try {
     const getSeedPromise = new Promise((resolve, reject) => {
@@ -244,15 +244,12 @@ app.post("/openchannel", (req, res) => {
     },
     form: JSON.stringify(requestBody),
   };
-  console.log("!!!!!!!!!!!!!");
   request.post(options, function (error, response, body) {
-    console.log("HIER");
     if (error) {
       console.error(error);
       res.send(error);
       return;
     }
-    console.log("BODY");
     console.log(body);
     res.send(body);
   });
@@ -282,6 +279,34 @@ app.post("/listchannels", (req, res) => {
       console.log(body);
       res.json(body);
     }
+  });
+});
+
+// add invoice
+app.post("/addinvoice", (req, res) => {
+  const token = jwt.verify(req.body.user_id_token, "secretLightningKeyForId");
+  const REST_PORT = token.id;
+  const MACAROON_PATH =
+    "/Users/lucafischer/Library/Application Support/lnd" +
+    token.id +
+    "/data/chain/bitcoin/regtest/admin.macaroon";
+  const amount = req.body.amount;
+
+  let requestBody = {
+    amt_paid_sat: amount,
+  };
+  let options = {
+    url: `https://localhost:${REST_PORT}/v1/invoices`,
+    rejectUnauthorized: false,
+    json: true,
+    headers: {
+      "Grpc-Metadata-macaroon": fs.readFileSync(MACAROON_PATH).toString("hex"),
+    },
+    form: JSON.stringify(requestBody),
+  };
+  request.post(options, function (error, response, body) {
+    console.log(body);
+    res.json(body);
   });
 });
 

@@ -6,7 +6,7 @@ import Register from "./Pages/Register";
 import History from "./Pages/History";
 import Connect from "./Pages/Connect";
 import Channels from "./Pages/Channels";
-import Handling from "./Pages/Handling";
+import Handling from "./Components/Handling";
 import Box from "@mui/material/Box";
 
 import Navbar from "./Components/Navbar";

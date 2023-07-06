@@ -111,14 +111,13 @@ app.get("/api/getNames", (req, res) => {
   });
 });
 
-// get all names and pubkey by pubkey
-app.get("/api/getNamesByPubkey", (req, res) => {
+// get all id, names and pubkey by pubkey
+app.get("/api/getByPubkey", (req, res) => {
   const pubkey = req.query.pubkey;
-  console.log("!!!")
   console.log(pubkey)
-  db.query(`SELECT name, pubkey FROM users WHERE pubkey IN (?)`, [pubkey], (err, result) => {
+  db.query(`SELECT id, name, pubkey FROM users WHERE pubkey IN (?)`, [pubkey], (err, result) => {
     console.log(result);
-    res.json({ result: result });
+    res.json({ result: result }); // TODO: does the id in result has to be sign with secretLightningKeyForId???
   });  
 });
 
