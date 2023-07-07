@@ -104,8 +104,11 @@ app.get("/api/getUserInfos", (req, res) => {
 
 // get all names by id
 app.get("/api/getNames", (req, res) => {
-  const ports = req.query.ports;
-  db.query(`SELECT name FROM users WHERE id IN (${ports})`, (err, result) => {
+  const pubkeys = req.query.pubkeys;
+  const pubkeysQuoted = pubkeys.map(pubkey => `'${pubkey}'`).join(',');
+  const query = `SELECT name FROM users WHERE pubkey IN (${pubkeysQuoted})`;
+
+  db.query(query, (err, result) => {
     console.log(result);
     res.json({ names: result });
   });
