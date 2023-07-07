@@ -5,7 +5,8 @@ import Axios from "axios";
 import TextField from "@mui/material/TextField";
 
 interface Peer {
-  address: string;
+
+  pub_key: string;
 }
 
 function Connect() {
@@ -68,21 +69,24 @@ function Connect() {
     })
       .then((response) => {
         console.log(response);
+        console.log(response.data.peers[0].pub_key);
         setExistingPeers(response.data.peers);
-        const addresses = response.data.peers.map((peer: Peer) => {
-          const parts = peer.address.split(":");
-          const port = parseInt(parts[1]) - 10000;
-          return port;
+        const pubKeys: string[] = [];
+
+        response.data.peers.forEach((peer: Peer) => {
+          pubKeys.push(peer.pub_key);
         });
-        // get names for each port
+        console.log(pubKeys)
+        // get names for each pubkey
         return Axios.get("http://localhost:3002/api/getNames", {
           params: {
-            ports: addresses,
+            pubkeys: pubKeys, 
           },
         });
       })
       .then((response) => {
         setConnectedPeers(response.data.names);
+        console.log(response.data.names)
       })
       .catch((error) => {
         console.log(error);
@@ -95,7 +99,7 @@ function Connect() {
     });
   };
 
-  const connectPeerByList = (name: string) => {
+  const connectPeerByList = (name: string) => { // TODO: SUCESS MESSAGE IN HANDLING
     Axios.post("http://localhost:3002/api/getIdAndPubKey", {
       name: name,
     }).then((response) => {
@@ -163,7 +167,7 @@ function Connect() {
           <p>No existing connections to peers</p>
         ) : (
           <ul style={{ listStyleType: "none", padding: 0 }}>
-            {connectedPeers.map((item, index) => (
+            {connectedPeers.map((item, index) => ( 
               <li key={index}>
                 <Grid
                   container
@@ -178,7 +182,7 @@ function Connect() {
                   </Grid>
                 </Grid>
               </li>
-            ))}
+            ))} 
           </ul>
         )}
         <Button onClick={reloadPeers} variant="contained">

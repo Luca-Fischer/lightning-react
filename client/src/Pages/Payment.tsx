@@ -17,6 +17,7 @@ function Payment() {
   });
   const [confirm, setConfirm] = useState(0);
   const [amountToSmall, setAmountToSmall] = useState(false);
+  const [error, setError] = useState("");
 
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -78,9 +79,22 @@ function Payment() {
       payment_request: invoice.payment_request,
       amount: amount,
     }).then((response) => {
-      console.log(response); // check if response is good, then setConfirm(3)
+      console.log(response.data)
+     
+      const responseArray = response.data.split("}}");
+      console.log(responseArray);
+
+      const lastPart = responseArray[responseArray.length - 2] + "}}";
+      console.log(lastPart);
+      const errorMessage = JSON.parse(lastPart);
+      const failure_reason = errorMessage.result.failure_reason; 
+      if (failure_reason === "FAILURE_REASON_NONE") {
+        setConfirm(2);
+      } else {
+        setConfirm(3);
+        setError(failure_reason);
+     }
     });
-    setConfirm(3);
   };
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,10 +142,21 @@ function Payment() {
         <Button variant="contained" color="success" onClick={sendPayment}>
           Confirm Payment
         </Button>
-      ) : (
+      ) : confirm === 2 ? (
         <Alert variant="filled" severity="success">
           Payment Successful!
         </Alert>
+      ) : (
+        <>
+          <Alert variant="filled" severity="error">
+            {error}
+          </Alert>
+          <br></br>
+          <Alert variant="filled" severity="info">
+            Tipp: You can never spend the whole amount of the channel, to
+            provide an incentive against cheating. {/* TODO: find out the amount a channel always requires */}
+          </Alert> 
+        </>
       )}
     </div>
   );

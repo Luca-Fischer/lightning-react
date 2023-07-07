@@ -173,7 +173,13 @@ function Channels() {
     });
   };
 
-  const openChannel = () => {
+  const openChannel = () => { // possible error message: handling : {
+ /*   error: {
+      code: 2,
+      message: 'not enough witness outputs to create funding transaction, need 0.001 BTC only have 0 BTC  available',
+      details: []
+    }
+  } */
     console.log(remoteIdentityPubkey);
     console.log(channelAmount);
     if (Number(channelAmount) >= 20000) {
