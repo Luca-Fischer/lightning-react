@@ -16,10 +16,12 @@ function Handling() {
     const searchParams = new URLSearchParams(location.search);
     const responseDataString = searchParams.get("responseData");
     const responseData = responseDataString && JSON.parse(responseDataString);
-
     if (responseData) {
       setType(responseData.error.code);
       setMessage(responseData.error.message);
+      if (responseData.error.message === undefined) {
+        setMessage("Success");
+      }
     }
   }, [location]);
 

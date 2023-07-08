@@ -16,7 +16,7 @@ function Navbar() {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const [, setForceRender] = useState("");
 
-  const logout = () => {
+  const logout = () => { // replace with localstorage 
     localStorage.setItem("isLoggedIn", "false");
     setForceRender(" ");
   };

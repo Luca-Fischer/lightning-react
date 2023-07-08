@@ -5,7 +5,6 @@ import Axios from "axios";
 import TextField from "@mui/material/TextField";
 
 interface Peer {
-
   pub_key: string;
 }
 
@@ -76,30 +75,30 @@ function Connect() {
         response.data.peers.forEach((peer: Peer) => {
           pubKeys.push(peer.pub_key);
         });
-        console.log(pubKeys)
+        console.log(pubKeys);
         // get names for each pubkey
         return Axios.get("http://localhost:3002/api/getNames", {
           params: {
-            pubkeys: pubKeys, 
+            pubkeys: pubKeys,
           },
         });
       })
       .then((response) => {
         setConnectedPeers(response.data.names);
-        console.log(response.data.names)
+        console.log(response.data.names);
       })
       .catch((error) => {
         console.log(error);
       });
   };
-
+  // TODO: Remove own name
   const getUsers = () => {
     Axios.get("http://localhost:3002/api/getUsers").then((response) => {
       setNames(response.data.names.map((item: any) => item.name));
     });
   };
 
-  const connectPeerByList = (name: string) => { // TODO: SUCESS MESSAGE IN HANDLING
+  const connectPeerByList = (name: string) => {
     Axios.post("http://localhost:3002/api/getIdAndPubKey", {
       name: name,
     }).then((response) => {
@@ -108,9 +107,21 @@ function Connect() {
         pub_key: response.data.users[0].pubkey,
         host: "localhost",
         port: response.data.users[0].id + 10000,
-      }).then((response) => {
-        console.log(response);
-      });
+      })
+        .then((response) => {
+          const error = response.data;
+          const responseData = {
+            error,
+          };
+          console.log(response.data)
+          console.log(responseData)
+         window.location.href = `http://localhost:3000/Handling?responseData=${JSON.stringify(
+          responseData
+          )}`;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     });
   };
 
@@ -128,13 +139,15 @@ function Connect() {
   };
 
   const openChannel = (name: string) => {
-    console.log(name)
+    console.log(name);
     Axios.post("http://localhost:3002/api/getIdAndPubKey", {
       name: name,
     }).then((response) => {
-      console.log(response)
+      console.log(response);
       const responseData = response.data;
-      window.location.href = `http://localhost:3000/Channels?responseData=${JSON.stringify(responseData)}&name=${name}`
+      window.location.href = `http://localhost:3000/Channels?responseData=${JSON.stringify(
+        responseData
+      )}&name=${name}`;
     });
   };
 
@@ -156,7 +169,7 @@ function Connect() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>; 
+    return <div>Loading...</div>;
   }
 
   return (
@@ -167,7 +180,7 @@ function Connect() {
           <p>No existing connections to peers</p>
         ) : (
           <ul style={{ listStyleType: "none", padding: 0 }}>
-            {connectedPeers.map((item, index) => ( 
+            {connectedPeers.map((item, index) => (
               <li key={index}>
                 <Grid
                   container
@@ -182,7 +195,7 @@ function Connect() {
                   </Grid>
                 </Grid>
               </li>
-            ))} 
+            ))}
           </ul>
         )}
         <Button onClick={reloadPeers} variant="contained">
