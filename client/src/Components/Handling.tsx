@@ -16,6 +16,7 @@ function Handling() {
     const searchParams = new URLSearchParams(location.search);
     const responseDataString = searchParams.get("responseData");
     const responseData = responseDataString && JSON.parse(responseDataString);
+    console.log(responseData);
     if (responseData) {
       setType(responseData.error.code);
       setMessage(responseData.error.message);
@@ -55,7 +56,7 @@ function Handling() {
           {message}
         </Alert>
       ) : (
-        <Alert variant="filled" severity="success">
+        <Alert variant="filled" severity="info">
           {message}
         </Alert>
       )}

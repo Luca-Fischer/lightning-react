@@ -9,6 +9,8 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useNavigate } from "react-router";
+import Alert from "@mui/material/Alert";
 
 interface Channel {
   active: boolean;
@@ -82,20 +84,13 @@ function Channels() {
   const [channelAmountToSmall, setChannelAmountToSmall] = useState(false);
   const [name, setName] = useState<string | null>(null);
   const location = useLocation();
+  const [message, setMessage] = useState(false);
 
   const [result, setResult] = useState<
     { id: string; name: string; pubkey: string }[]
   >([]);
 
-  const errorResponse = {
-    error: {
-      code: 1,
-      message: "Wait for block confirmation!",
-      details: [],
-    },
-  };
-
-  const message = `${encodeURIComponent(JSON.stringify(errorResponse))}`;
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkToken();
@@ -118,21 +113,21 @@ function Channels() {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }).then((response) => {
-      if (!response.data.success) {
-        const responseData = "false";
-        window.location.href = `http://localhost:3000/Login?responseData=${JSON.stringify(
-          responseData
-        )}`;
-      } else {
-        setIsLoading(false);
-      }
     })
-    .catch((error) => {
-      console.error(error);
-      setIsLoading(false);
-    });
-
+      .then((response) => {
+        if (!response.data.success) {
+          const responseData = "false";
+          window.location.href = `http://localhost:3000/Login?responseData=${JSON.stringify(
+            responseData
+          )}`;
+        } else {
+          setIsLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setIsLoading(false);
+      });
   };
 
   const loadChannels = () => {
@@ -173,22 +168,31 @@ function Channels() {
     });
   };
 
-  const openChannel = () => { // possible error message: handling : {
- /*   error: {
-      code: 2,
-      message: 'not enough witness outputs to create funding transaction, need 0.001 BTC only have 0 BTC  available',
-      details: []
-    }
-  } */
-    console.log(remoteIdentityPubkey);
-    console.log(channelAmount);
+  const openChannel = () => {
+    setMessage(true);
     if (Number(channelAmount) >= 20000) {
       Axios.post("http://localhost:3001/openchannel", {
         user_id_token: localStorage.getItem("isLoggedIn"),
         identity_pub_key: remoteIdentityPubkey,
         amount: channelAmount,
       }).then((response) => {
-        console.log(response.data);
+        console.log(response.data.error.message);
+        if (
+          response.data.error.message.includes(
+            "Number of pending channels exceed maximum"
+          )
+        ) {
+          const errorResponse = {
+            error: {
+              code: 1,
+              message: "Wait for block confirmation!",
+              details: [],
+            },
+          };
+          navigate(`/handling?responseData=${JSON.stringify(errorResponse)}`);
+          return;
+        }
+        navigate(`/handling?responseData=${JSON.stringify(response.data)}`);
       });
     } else {
       setChannelAmountToSmall(true);
@@ -324,14 +328,18 @@ function Channels() {
           )}
           <br></br>
           <br></br>
-          <Link
-            to={{ pathname: "/handling", search: `?responseData=${message}` }}
-            style={{ textDecoration: "none" }}
-          >
-            <Button onClick={openChannel} variant="contained">
-              Open Channel
-            </Button>
-          </Link>
+          <Button onClick={openChannel} variant="contained">
+            Open Channel
+          </Button>
+          <br></br>
+          <br></br>
+          {message ? (
+            <Alert variant="filled" severity="info">
+              Try to open a Channel. Wait for block confirmation!
+            </Alert>
+          ) : (
+            <></>
+          )}
         </div>
       ) : (
         <div>
@@ -371,14 +379,18 @@ function Channels() {
           )}
           <br></br>
           <br></br>
-          <Link
-            to={{ pathname: "/handling", search: `?responseData=${message}` }}
-            style={{ textDecoration: "none" }}
-          >
-            <Button onClick={openChannel} variant="contained">
-              Open Channel
-            </Button>
-          </Link>
+          <Button onClick={openChannel} variant="contained">
+            Open Channel
+          </Button>
+          <br></br>
+          <br></br>
+          {message ? (
+            <Alert variant="filled" severity="info">
+              Try to open a Channel. Wait for block confirmation!
+            </Alert>
+          ) : (
+            <></>
+          )}
         </div>
       )}
     </div>
