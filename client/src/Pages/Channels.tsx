@@ -82,6 +82,7 @@ function Channels() {
   const [remoteIdentityPubkey, setRemoteIdentityPubkey] = useState("");
   const [channelAmount, setChannelAmount] = useState("");
   const [channelAmountToSmall, setChannelAmountToSmall] = useState(false);
+  const [channelAmountToBig, setChannelAmountToBig] = useState(false);
   const [name, setName] = useState<string | null>(null);
   const location = useLocation();
   const [message, setMessage] = useState(false);
@@ -169,8 +170,9 @@ function Channels() {
   };
 
   const openChannel = () => {
-    setMessage(true);
-    if (Number(channelAmount) >= 20000) {
+    if (Number(channelAmount) >= 20000 && Number(channelAmount) <= 16777215) {
+      setMessage(true);
+
       Axios.post("http://localhost:3001/openchannel", {
         user_id_token: localStorage.getItem("isLoggedIn"),
         identity_pub_key: remoteIdentityPubkey,
@@ -185,7 +187,7 @@ function Channels() {
           const errorResponse = {
             error: {
               code: 1,
-              message: "Wait for block confirmation!",
+              message: "Try to open a Channel. Wait for block confirmation!",
               details: [],
             },
           };
@@ -195,7 +197,11 @@ function Channels() {
         navigate(`/handling?responseData=${JSON.stringify(response.data)}`);
       });
     } else {
-      setChannelAmountToSmall(true);
+      if (Number(channelAmount) < 20000) {
+        setChannelAmountToSmall(true);
+      } else {
+        setChannelAmountToBig(true);
+      }
     }
   };
 
@@ -360,6 +366,17 @@ function Channels() {
             <TextField
               fullWidth
               label="Channel Amount"
+              value={channelAmount}
+              onChange={(event) =>
+                handleChangeOpenChannel(event, "channelAmount")
+              }
+            />
+          ) : channelAmountToBig ? (
+            <TextField
+              error
+              fullWidth
+              label="ChannelAmount"
+              helperText="Maximum 0.16777215 BTC"
               value={channelAmount}
               onChange={(event) =>
                 handleChangeOpenChannel(event, "channelAmount")

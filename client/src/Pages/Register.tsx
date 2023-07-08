@@ -11,7 +11,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { Link } from "react-router-dom";
 
 function Register() {
-  // TODO: encryption and small capital letter always
+  // TODO: encryption and small capital letter always for email
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
