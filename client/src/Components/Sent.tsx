@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -6,87 +6,66 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import Axios from "axios";
+import UnixTimestamp from "./UnixTimestamp";
+
+interface Data {
+  creation_date: string;
+  fee_sat: string;
+  status: string;
+  payment_request: string; // TODO: payment request onclick and https://api.lightning.community/api/lnd/lightning/decode-pay-req 
+  value_sat: string;
+} //TODO: check if the other data is usefull (https://api.lightning.community/api/lnd/lightning/list-payments): htlcs, payment_preimage, payment_hash
 
 function Sent() {
-  function createData(
-    date: string,
-    status: string,
-    to: string,
-    request: string,
-    note: string,
-    fee: number,
-    amount: number
-  ) {
-    return { date, status, to, request, note, fee, amount };
-  }
+  const [data, setData] = useState<Data[]>([]);
 
-  const rows = [
-    createData(
-      "May 20, 15:03",
-      "Complete",
-      "0xjnsuf3h42hjrb2br",
-      "Indnasdbaberhjb3",
-      "Some String",
-      0,
-      40.0
-    ),
-    createData(
-      "May 20, 15:02",
-      "Complete",
-      "0xjnsuf3h42hjrb2br",
-      "Indnasdbaberhjb3",
-      "Some String",
-      0,
-      40.0
-    ),
-    createData(
-      "May 20, 15:01",
-      "Complete",
-      "0xjnsuf3h42hjrb2br",
-      "Indnasdbaberhjb3",
-      "Some String",
-      0,
-      40.0
-    ),
-    createData(
-      "May 20, 15:04",
-      "Complete",
-      "0xjnsuf3h42hjrb2br",
-      "Indnasdbaberhjb3",
-      "Some String",
-      0,
-      40.0
-    ),
-  ];
+  useEffect(() => {
+    listPayments();
+  }, []);
+
+  const listPayments = () => {
+    Axios.post("http://localhost:3001/listpayments", {
+      user_id_token: localStorage.getItem("isLoggedIn"),
+    }).then((response) => {
+      console.log(response.data);
+      setData(response.data);
+    });
+  };
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="simple table">
         <TableHead>
           <TableRow>
-            <TableCell>Date</TableCell>
+            <TableCell align="right">Date</TableCell>
             <TableCell align="right">Status</TableCell>
-            <TableCell align="right">To</TableCell>
-            <TableCell align="right">Request</TableCell>
-            <TableCell align="right">Note</TableCell>
-            <TableCell align="right">Fee</TableCell>
             <TableCell align="right">Amount</TableCell>
+            <TableCell align="right">Fee</TableCell>
+            <TableCell align="right">Payment Rqeuest</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
+          {data.map((row) => (
             <TableRow
-              key={row.date}
+              key={row.creation_date}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
               <TableCell component="th" scope="row">
-                {row.date}
+                <div style={{ whiteSpace: "nowrap" }}>
+                  <UnixTimestamp unixTime={row.creation_date} />
+                </div>
               </TableCell>
               <TableCell align="right">{row.status}</TableCell>
-              <TableCell align="right">{row.to}</TableCell>
-              <TableCell align="right">{row.request}</TableCell>
-              <TableCell align="right">{row.note}</TableCell>
-              <TableCell align="right">{row.fee}</TableCell>
-              <TableCell align="right">{row.amount}</TableCell>
+              <TableCell align="right">{row.value_sat}</TableCell>
+              <TableCell align="right">{row.fee_sat}</TableCell>
+              <TableCell align="right">
+                {" "}
+                {`${row.payment_request.slice(
+                  0,
+                  15
+                )}...${row.payment_request.slice(-15)}`}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -36,6 +36,8 @@ function History() {
     });
   };
 
+  
+
   const showReceived = () => {
     setShowTable(false);
   };

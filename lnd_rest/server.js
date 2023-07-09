@@ -324,7 +324,7 @@ app.post("/sendpayment", (req, res) => {
   let requestBody = {
     payment_request: payment_request,
     timeout_seconds: 60,
-    amt: amount
+    amt: amount,
   };
   let options = {
     url: `https://localhost:${REST_PORT}/v2/router/send`,
@@ -338,6 +338,29 @@ app.post("/sendpayment", (req, res) => {
   request.post(options, function (error, response, body) {
     console.log(body);
     res.json(body);
+  });
+});
+
+// list payments
+app.post("/listpayments", (req, res) => {
+  const token = jwt.verify(req.body.user_id_token, "secretLightningKeyForId");
+  const REST_PORT = token.id;
+  const MACAROON_PATH =
+    "/Users/lucafischer/Library/Application Support/lnd" +
+    token.id +
+    "/data/chain/bitcoin/regtest/admin.macaroon";
+
+  let options = {
+    url: `https://localhost:${REST_PORT}/v1/payments`,
+    rejectUnauthorized: false,
+    json: true,
+    headers: {
+      "Grpc-Metadata-macaroon": fs.readFileSync(MACAROON_PATH).toString("hex"),
+    },
+  };
+  request.get(options, function (error, response, body) {
+    console.log(body);
+    res.json(body.payments);
   });
 });
 

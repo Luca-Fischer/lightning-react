@@ -93,7 +93,11 @@ function Connect() {
   };
   // TODO: Remove own name
   const getUsers = () => {
-    Axios.get("http://localhost:3002/api/getUsers").then((response) => {
+    Axios.get("http://localhost:3002/api/getUsers", {
+      params: {
+        id: localStorage.getItem("isLoggedIn"),
+      },
+    }).then((response) => {
       setNames(response.data.names.map((item: any) => item.name));
     });
   };
@@ -113,10 +117,10 @@ function Connect() {
           const responseData = {
             error,
           };
-          console.log(response.data)
-          console.log(responseData)
-         window.location.href = `http://localhost:3000/Handling?responseData=${JSON.stringify(
-          responseData
+          console.log(response.data);
+          console.log(responseData);
+          window.location.href = `http://localhost:3000/Handling?responseData=${JSON.stringify(
+            responseData
           )}`;
         })
         .catch((error) => {

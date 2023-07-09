@@ -75,7 +75,13 @@ app.get("/api/getUser/", async (req, res) => {
 
 // get all names
 app.get("/api/getUsers", (req, res) => {
-  db.query("SELECT name FROM users", (err, result) => {
+  const id = req.query.id;
+  const decodedId = jwt.verify(id, "secretLightningKeyForId");
+
+  const query = "SELECT name FROM users WHERE id <> ?";
+  const params = [decodedId.id];
+
+  db.query(query, params, (err, result) => {
     if (err) {
       console.log(err);
       res.status(500).json({ error: "Failed to get users" });
@@ -105,7 +111,7 @@ app.get("/api/getUserInfos", (req, res) => {
 // get all names by id
 app.get("/api/getNames", (req, res) => {
   const pubkeys = req.query.pubkeys;
-  const pubkeysQuoted = pubkeys.map(pubkey => `'${pubkey}'`).join(',');
+  const pubkeysQuoted = pubkeys.map((pubkey) => `'${pubkey}'`).join(",");
   const query = `SELECT name FROM users WHERE pubkey IN (${pubkeysQuoted})`;
 
   db.query(query, (err, result) => {
